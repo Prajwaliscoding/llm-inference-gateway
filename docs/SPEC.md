@@ -7,20 +7,3 @@
 **Who uses it:** Any application that currently calls an LLM provider directly. For this project, the primary client is a demo/testing client built alongside the gateway to prove the pattern end-to-end.
 
 **Why it needs to exist:** Calling a single LLM provider directly means no cost optimization (every request uses the same model regardless of complexity), no failover if a provider has an outage, and no centralized visibility into spend or usage patterns.
-
-## Architecture
-
-```
-Client → Gateway → {OpenAI, Anthropic}
-            ↓
-            Postgres (persistent state)
-            Redis (cache, rate limits)
-            Prometheus/Grafana (observability)
-```
-
-- **Client** — the app calling the gateway
-- **Gateway** — the decision-maker: routes each request, logs it, checks cache
-- **Providers** — OpenAI/Anthropic, who actually run inference
-- **Postgres** — permanent record of every request and rolled-up usage
-- **Redis** — fast cache and rate-limit tracking
-- **Prometheus/Grafana** — observability dashboards
