@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.schemas.chat import Request, Response
+import httpx
 
 app = FastAPI()
 
