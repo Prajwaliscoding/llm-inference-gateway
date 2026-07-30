@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from app.schemas.chat import Request, Response
 import httpx
+from app.config import settings
 
 app = FastAPI()
 
@@ -10,7 +11,7 @@ async def chat_completions(request: Request):
         async with httpx.AsyncClient() as client:
             response = await client.post("https://api.openai.com/v1/chat/completions", 
                                         json = request.model_dump(), 
-                                        headers = {"Authorization": "Bearer OPENAI_API_KEY"})
+                                        headers = {"Authorization": f"Bearer {settings.openai_api_key}"})
 
     except httpx.RequestError:
             raise HTTPException(status_code=502, detail="Failed to reach OpenAI")
