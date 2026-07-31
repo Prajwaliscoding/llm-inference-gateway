@@ -1,11 +1,12 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from app.schemas.chat import Request, Response
 import httpx
 from app.config import settings
+from app.auth import verify_token
 
 app = FastAPI()
 
-@app.post("/v1/chat/completions")
+@app.post("/v1/chat/completions", dependencies = Depends(verify_token))
 async def chat_completions(request: Request):
     try:
         async with httpx.AsyncClient() as client:
