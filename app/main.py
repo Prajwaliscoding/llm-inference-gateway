@@ -12,7 +12,7 @@ app = FastAPI()
 
 @app.middleware("http")
 async def logging_middleware(request, call_next):
-      request_id = str(uuid.uuid4)
+      request_id = str(uuid.uuid4())
       logger.info("request received", request_id = request_id, path = request.url.path)
 
       try:
