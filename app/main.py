@@ -32,13 +32,16 @@ async def logging_middleware(request, call_next):
 async def chat_completions(request: Request):
     try:
         async with httpx.AsyncClient() as client:
+            logger.info("provider called", provider ="openai")
             response = await client.post("https://api.openai.com/v1/chat/completions", 
                                         json = request.model_dump(), 
                                         headers = {"Authorization": f"Bearer {settings.openai_api_key}"})
 
     except httpx.RequestError:
+            logger.error("provider unreachable", provider="openai")
             raise HTTPException(status_code=502, detail="Failed to reach OpenAI")
     if response.status_code >= 500:
+            logger.error("provider server error", provider="openai", status_code=response.status_code)
             raise HTTPException(status_code=502, detail="OpenAI server failed")
     return response.json()
 
