@@ -6,7 +6,7 @@ from app.auth import verify_token
 
 app = FastAPI()
 
-@app.post("/v1/chat/completions", dependencies = Depends(verify_token))
+@app.post("/v1/chat/completions", dependencies = [Depends(verify_token)])
 async def chat_completions(request: Request):
     try:
         async with httpx.AsyncClient() as client:
