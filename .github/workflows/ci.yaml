@@ -12,5 +12,5 @@ jobs:
       - name: Run tests with coverage
         env:
           OPENAI_API_KEY: test-key-not-real
-          GATEWAY_API_TOKEN: test-token-not-real
+          GATEWAY_API_TOKEN: gateway-key
         run: uv run pytest --cov=app --cov-report=term-missing
