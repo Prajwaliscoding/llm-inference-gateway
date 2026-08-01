@@ -45,4 +45,8 @@ async def chat_completions(request: Request):
             raise HTTPException(status_code=502, detail="OpenAI server failed")
     return response.json()
 
-    
+
+
+@app.get("/health")
+async def health():
+      return {"status":"okay"}
