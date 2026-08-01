@@ -6,9 +6,11 @@ A lightweight API gateway that proxies requests to LLM providers (currently Open
 
 - OpenAI-compatible `/v1/chat/completions` endpoint
 - Bearer token authentication
-- Structured JSON logging with request tracing
+- Structured JSON logging with request tracing (unique request ID per request)
 - Async request handling via httpx
-- 95%+ test coverage
+- Graceful error handling (upstream failures mapped to `502`)
+- `/health` endpoint for liveness checks
+- 95%+ test coverage (unit + integration tests, mocked provider calls)
 
 ## Running locally
 
@@ -46,11 +48,15 @@ GATEWAY_API_TOKEN=your-chosen-token
 docker compose up
 ```
 
-### Running tests
+## Interactive API docs (Swagger UI)
 
-```bash
-make test
+Once the server is running, open:
+
 ```
+http://127.0.0.1:8000/docs
+```
+
+This gives you an interactive UI to explore and test the `/v1/chat/completions` and `/health` endpoints directly in the browser — no curl needed. A raw OpenAPI schema is also available at `/openapi.json`.
 
 ## Example request
 
@@ -59,4 +65,71 @@ curl -X POST http://127.0.0.1:8000/v1/chat/completions \
   -H "Authorization: Bearer your-token" \
   -H "Content-Type: application/json" \
   -d '{"model": "gpt-4o-mini", "messages": [{"role": "user", "content": "hello"}]}'
+```
+
+### Example response
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "created": 1722366000,
+  "model": "gpt-4o-mini",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hello! How can I help you today?"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10,
+    "completion_tokens": 8,
+    "total_tokens": 18
+  }
+}
+```
+
+### Health check
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+```json
+{ "status": "ok" }
+```
+
+## Running tests
+
+```bash
+make test
+```
+
+This runs the full test suite (unit tests for schema validation, auth, and error mapping, plus one integration test using a saved fixture) with coverage reporting. Current coverage: **95%**.
+
+Individual test categories:
+
+- Request/response schema validation
+- Auth dependency (missing/invalid token → `401`)
+- Provider failure handling (unreachable / 5xx → `502`)
+- Full request→response flow (mocked OpenAI, using a saved fixture)
+
+## Project structure
+
+```markdown
+app/
+├── main.py # FastAPI app, routes, middleware
+├── auth.py # Bearer token verification
+├── config.py # Environment-based settings (Pydantic Settings)
+├── logging_config.py # structlog setup
+└── schemas/
+└── chat.py # Request/Response Pydantic models
+tests/
+├── test_main.py # Unit + integration tests
+└── fixtures/
+└── openai_response.json
 ```
