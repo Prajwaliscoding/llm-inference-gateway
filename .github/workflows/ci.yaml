@@ -9,4 +9,8 @@ jobs:
       - run: uv sync
       - run: uv run ruff check . --fix
       - run: uv run mypy .
-      - run: uv run pytest --cov=app --cov-report=term-missing
+      - name: Run tests with coverage
+        env:
+          OPENAI_API_KEY: test-key-not-real
+          GATEWAY_API_TOKEN: test-token-not-real
+        run: uv run pytest --cov=app --cov-report=term-missing
