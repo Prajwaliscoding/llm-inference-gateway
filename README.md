@@ -1,6 +1,6 @@
 # LLM Inference Gateway
 
-A lightweight API gateway that proxies requests to LLM providers (currently OpenAI), with authentication, structured logging, and error handling — built as an OpenAI-compatible drop-in endpoint.
+A lightweight API gateway that proxies requests to LLM providers (currently OpenAI), with authentication, structured logging, and error handling. It is built as an OpenAI-compatible drop-in endpoint.
 
 ## Features
 
@@ -56,7 +56,7 @@ Once the server is running, open:
 http://127.0.0.1:8000/docs
 ```
 
-This gives you an interactive UI to explore and test the `/v1/chat/completions` and `/health` endpoints directly in the browser — no curl needed. A raw OpenAPI schema is also available at `/openapi.json`.
+This gives you an interactive UI to explore and test the `/v1/chat/completions` and `/health` endpoints directly in the browser; no curl needed. A raw OpenAPI schema is also available at `/openapi.json`.
 
 ## Example request
 
@@ -124,7 +124,7 @@ Individual test categories:
 app/
 ├── main.py # FastAPI app, routes, middleware
 ├── auth.py # Bearer token verification
-├── config.py # Environment-based settings (Pydantic Settings)
+├── config.py # Environment based settings (Pydantic Settings)
 ├── logging_config.py # structlog setup
 └── schemas/
 └── chat.py # Request/Response Pydantic models
