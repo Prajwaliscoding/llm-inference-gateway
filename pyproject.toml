@@ -8,6 +8,7 @@ dependencies = [
     "fastapi>=0.140.0",
     "httpx>=0.28.1",
     "pydantic-settings>=2.14.2",
+    "sqlalchemy>=2.0.51",
     "structlog>=26.1.0",
     "uvicorn>=0.51.0",
 ]
