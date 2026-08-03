@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, DateTime, UniqueConstraint, func
+from sqlalchemy import ForeignKey, DateTime, func
 from datetime import datetime
 from app.models.base import Base
 
@@ -7,7 +7,6 @@ from app.models.base import Base
 class RequestLog(Base):
 
     __tablename__ = "request_log"
-    __table_args__ = (UniqueConstraint("api_key_id", "usage_date"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     api_key_id: Mapped[int] = mapped_column(ForeignKey("api_keys.id"), index=True)
