@@ -6,7 +6,7 @@ from app.models.base import Base
 
 class RequestLog(Base):
 
-    __tablename__ = "requests"
+    __tablename__ = "request_log"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     api_key_id: Mapped[int] = mapped_column(ForeignKey("api_keys.id"), index=True)
