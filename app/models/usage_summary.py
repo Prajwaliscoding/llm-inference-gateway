@@ -10,7 +10,7 @@ class UsageSummary(Base):
     __table_args__ = (UniqueConstraint("api_key_id", "usage_date"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    api_key_id: Mapped[int] = mapped_column(ForeignKey("api_keys.id"), index=True)
+    api_key_id: Mapped[int] = mapped_column(ForeignKey("api_key.id"), index=True)
     usage_date: Mapped[date] = mapped_column(Date)
     total_requests: Mapped[int] = mapped_column(default=0)
     total_cost: Mapped[float] = mapped_column(default=0.0)

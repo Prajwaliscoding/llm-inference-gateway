@@ -9,7 +9,7 @@ class RequestLog(Base):
     __tablename__ = "request_log"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    api_key_id: Mapped[int] = mapped_column(ForeignKey("api_keys.id"), index=True)
+    api_key_id: Mapped[int] = mapped_column(ForeignKey("api_key.id"), index=True)
     model: Mapped[str] = mapped_column()
     provider: Mapped[str] = mapped_column()
     prompt_tokens: Mapped[int] = mapped_column()

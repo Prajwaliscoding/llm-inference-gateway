@@ -22,7 +22,7 @@ target_metadata = Base.metadata
 config.set_main_option(
     "sqlalchemy.url",
     f"postgresql+asyncpg://{settings.postgres_user}:{settings.postgres_password}"
-    f"@{settings.postgres_host}:5432/{settings.postgres_db}",
+    f"@{settings.postgres_host}:5433/{settings.postgres_db}",
 )
 
 
