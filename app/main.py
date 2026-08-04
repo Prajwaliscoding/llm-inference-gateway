@@ -1,6 +1,5 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, Depends
 from app.schemas.chat import Request, Response
-import httpx
 from app.config import settings
 from app.auth import verify_token
 from app.logging_config import configure_logging, logger
@@ -11,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.security import generate_api_key, hash_api_key
 from app.models.api_key import ApiKey
-from fastapi import Header
+from app.auth import verify_admin
 
 configure_logging()
 
@@ -47,13 +46,6 @@ async def chat_completions(request: Request) -> Response:
 async def health():
       return {"status":"okay"}
 
-
-
-def verify_admin(authorization:str = Header(...)):
-      token = authorization.removeprefix("Bearer ").strip()
-      if token != settings.admin_token:
-            raise HTTPException(status_code=401, detail="Invalid admin token")
-      
 
 
 @app.post("/admin/keys", dependencies=[Depends(verify_admin)])
