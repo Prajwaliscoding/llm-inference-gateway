@@ -5,5 +5,9 @@ DATABASE_URL = f"postgresql+asyncpg://{settings.postgres_user}:{settings.postgre
 
 engine = create_async_engine(DATABASE_URL, pool_size=10, max_overflow=5)
 
-AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False) # factory
 
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
