@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_db: str
     postgres_host: str
+    admin_token: str
 
 
     class Config:
