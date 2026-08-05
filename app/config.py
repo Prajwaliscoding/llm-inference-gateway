@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     postgres_db: str
     postgres_host: str
     admin_token: str
+    redis_host: str
 
 
     class Config:
