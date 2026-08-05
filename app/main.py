@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends
+from app.cache import build_cache_key, save_cache_value, find_cache_key
 from app.schemas.chat import Request, Response
 from app.config import settings
 from app.auth import verify_token
@@ -36,8 +37,16 @@ async def logging_middleware(request, call_next):
 
 @app.post("/v1/chat/completions", dependencies = [Depends(verify_token)])
 async def chat_completions(request: Request) -> Response:
+
+      cache_key = build_cache_key(request)
+      find_in_cache = await find_cache_key(cache_key)
+      if find_in_cache is not None:
+            return Response(**find_in_cache)
+      
+
       provider = get_provider(request.model)
       response = await provider.chat_completion(request)
+      await save_cache_value(cache_key, response)
       return response
 
 
