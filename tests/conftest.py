@@ -5,7 +5,11 @@ from testcontainers.redis import RedisContainer
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from app.models.base import Base
 import redis.asyncio as redis_lib
+from app.database import get_db
+from app.main import app as fastapi_app
 
+import httpx
+from httpx import ASGITransport
 
 @pytest.fixture(scope="session")
 def postgres_container():
@@ -43,3 +47,49 @@ async def redis_session(redis_container):
     yield client
     await client.flushdb()
     await client.aclose()
+
+@pytest_asyncio.fixture
+async def test_api_key(db_session):
+    from app.models.api_key import ApiKey
+    from app.security import generate_api_key, hash_api_key
+
+    raw_key = generate_api_key()
+    hashed = hash_api_key(raw_key)
+
+    key_row = ApiKey(hashed_key=hashed, name="test-key")
+    db_session.add(key_row)
+    await db_session.commit()
+
+    return raw_key
+
+
+
+@pytest.fixture
+def override_get_db(db_session):
+    async def _get_db():
+        yield db_session
+
+    fastapi_app.dependency_overrides[get_db] = _get_db
+    yield
+    fastapi_app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def client():
+    transport = ASGITransport(app=fastapi_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+@pytest.fixture
+def override_redis(redis_session):
+    import app.cache
+    import app.rate_limit
+
+    original_cache_redis = app.cache.redis_client
+    original_ratelimit_redis = app.rate_limit.redis_client
+
+    app.cache.redis_client = redis_session
+    app.rate_limit.redis_client = redis_session
+    yield
+    app.cache.redis_client = original_cache_redis
+    app.rate_limit.redis_client = original_ratelimit_redis

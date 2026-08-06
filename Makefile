@@ -13,3 +13,6 @@ start-db:
 listall-key-redis:
 	docker exec -it llm-inference-gateway-redis-1 redis-cli KEYS "cache:*"
 # Then to see the value: docker exec -it llm-inference-gateway-redis-1 redis-cli GET cache:<cache-key>
+
+make coverage_check:
+	uv run pytest --cov=app tests/test_main.py -v
