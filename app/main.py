@@ -12,6 +12,7 @@ from app.database import get_db
 from app.security import generate_api_key, hash_api_key
 from app.models.api_key import ApiKey
 from app.auth import verify_admin
+from app.rate_limit import check_rate_limit
 
 configure_logging()
 
@@ -35,8 +36,9 @@ async def logging_middleware(request, call_next):
       return response
 
 
-@app.post("/v1/chat/completions", dependencies = [Depends(verify_token)])
-async def chat_completions(request: Request) -> Response:
+@app.post("/v1/chat/completions")
+async def chat_completions(request: Request, api_key:ApiKey = Depends(verify_token)) -> Response:
+      await check_rate_limit(api_key.id)
 
       cache_key = build_cache_key(request)
       find_in_cache = await find_cache_key(cache_key)
