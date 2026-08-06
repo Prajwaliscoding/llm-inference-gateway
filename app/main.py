@@ -47,6 +47,7 @@ async def chat_completions(request: Request, api_key:ApiKey = Depends(verify_tok
 
       resolved_model = resolve_model(request)
       provider = get_provider(resolved_model)
+      request.model = resolved_model
       response = await provider.chat_completion(request)
       await save_cache_value(cache_key, response)
       return response
