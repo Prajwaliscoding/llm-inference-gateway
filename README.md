@@ -1,6 +1,6 @@
 # LLM Inference Gateway
 
-An OpenAI-compatible API gateway that routes requests across multiple LLM providers (OpenAI, Anthropic), with real auth, persistence, caching, rate limiting, cost tracking, and smart routing.
+An API gateway that proxies requests to multiple LLM providers(OpenAI and Anthropic), with real auth, persistence, caching, rate limiting, cost tracking, and smart routing. It is built as an OpenAI compatible drop-in endpoint.
 
 ## How it works
 
