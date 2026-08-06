@@ -7,7 +7,7 @@ An API gateway that proxies requests to multiple LLM providers(OpenAI and Anthro
 1. Client sends an OpenAI-shaped request to `/v1/chat/completions`
 2. Gateway authenticates the request against a hashed API key in Postgres
 3. Rate limit checked via atomic Redis counters
-4. Redis checked for a cached response — instant return on hit
+4. Redis checked for a cached response -> instant return on hit
 5. If `"model": "auto"`, gateway picks a model by prompt length, invisibly
 6. Request routed to the right provider (OpenAI/Anthropic) via a shared interface
 7. Cost calculated from real token usage
@@ -16,7 +16,7 @@ An API gateway that proxies requests to multiple LLM providers(OpenAI and Anthro
 
 ## Getting access
 
-Keys aren't self-service. The **admin** creates a key using `ADMIN_TOKEN`, then hands the raw key to whoever needs access (a teammate, a client app, a test script):
+Keys are not self service. The **admin** creates a key using `ADMIN_TOKEN`, then hands the raw key to whoever needs access (a teammate, a client app, a test script):
 
 ```bash
 curl -X POST http://127.0.0.1:8000/admin/keys \
@@ -25,21 +25,21 @@ curl -X POST http://127.0.0.1:8000/admin/keys \
   -d '{"name": "client-name"}'
 ```
 
-The response shows the raw key **once**. Copy it and send it to the client — only the hash is stored, so it can never be retrieved again. From here on, that client authenticates with `Authorization: Bearer <that-key>` on `/v1/chat/completions`.
+The response shows the raw key **once**. Copy it and send it to the client; only the hash is stored, so it can never be retrieved again. From here on, that client authenticates with `Authorization: Bearer <that-key>` on `/v1/chat/completions`.
 
 ## Features
 
-- **Multi-provider abstraction** — one `LLMProvider` interface, `OpenAIProvider`/`AnthropicProvider` implementations. New provider = one file + one line.
-- **Real auth** — keys generated via `secrets.token_urlsafe(32)`, SHA-256 hashed before storage, shown once.
-- **Postgres persistence** — async SQLAlchemy, connection pooling, Alembic migrations.
-- **Redis caching** — hashed request → cached response, TTL-based expiry.
-- **Redis rate limiting** — atomic `INCR`/`EXPIRE` per key, `429` + real `Retry-After`.
-- **Smart routing** — `"model": "auto"` resolves by prompt length.
-- **Cost tracking** — real per-model pricing, sourced and dated.
-- **Usage accounting** — per-request log + per-key daily summary, one atomic transaction.
-- **Structured logging** — JSON logs, unique request ID per request.
-- **Error handling** — upstream failures → `502`, bad auth → `401`, over-limit → `429`.
-- **Tested against real infra** — `testcontainers-python` spins up real Postgres + Redis for tests. 82%+ coverage.
+- **Multi-provider abstraction** - one `LLMProvider` interface, `OpenAIProvider`/`AnthropicProvider` implementations. New provider = one file + one line.
+- **Real auth** - keys generated via `secrets.token_urlsafe(32)`, SHA-256 hashed before storage, shown once.
+- **Postgres persistence** - async SQLAlchemy, connection pooling, Alembic migrations.
+- **Redis caching** - hashed request → cached response, TTL based expiry.
+- **Redis rate limiting** - atomic `INCR`/`EXPIRE` per key, `429` + real `Retry-After`.
+- **Smart routing** - `"model": "auto"` resolves by prompt length.
+- **Cost tracking** - real per model pricing, sourced and dated.
+- **Usage accounting** - per request log + per key daily summary, one atomic transaction.
+- **Structured logging** - JSON logs, unique request ID per request.
+- **Error handling** - upstream failures → `502`, bad auth → `401`, over-limit → `429`.
+- **Tested against real infra** - `testcontainers-python` spins up real Postgres + Redis for tests. 82%+ coverage.
 
 ## Architecture
 
@@ -73,9 +73,9 @@ tests/
 
 ## Data model
 
-- **`api_keys`** — hashed key, name, active flag, created timestamp
-- **`requests`** — one row per call: key, model, provider, tokens, cost, timestamp
-- **`usage_summaries`** — one row per (key, day), unique-constrained, running totals
+- **`api_keys`** - hashed key, name, active flag, created timestamp
+- **`requests`** - one row per call: key, model, provider, tokens, cost, timestamp
+- **`usage_summaries`** - one row per (key, day), unique-constrained, running totals
 
 ## Setup
 
@@ -109,7 +109,7 @@ make run
 
 ## API docs
 
-`http://127.0.0.1:8000/docs` — click **Authorize** once, applies to every request in session. Raw schema at `/openapi.json`.
+`http://127.0.0.1:8000/docs` - click **Authorize** once, applies to every request in session. Raw schema at `/openapi.json`.
 
 ## Example request
 
@@ -167,12 +167,12 @@ Covers: schema validation, auth (missing/invalid/valid key), provider failures (
 - **Package mgmt:** `uv`
 - **Lint/types:** `ruff`, `mypy` (strict)
 - **Migrations:** Alembic
-- **CI:** GitHub Actions — lint, type-check, test on every push
-- **Tasks:** `Makefile` — `make run`, `make start-db`, `make test`, `make lint`
+- **CI:** GitHub Actions - lint, type-check, test on every push
+- **Tasks:** `Makefile` - `make run`, `make start-db`, `make test`, `make lint`
 
 ## Why it's built this way
 
-- **Postgres + Redis, not one datastore** — Postgres holds data that must survive forever; Redis holds data that's fine to lose (worst case: fall back to normal behavior).
-- **Keys hashed, never stored raw** — a DB breach never exposes usable credentials.
-- **`usage_summaries` separate from `requests`** — reading a running total stays cheap regardless of history size.
-- **Pricing table is sourced and dated** — LLM pricing changes; guessed numbers rot silently.
+- **Postgres + Redis, not one datastore** - Postgres holds data that must survive forever; Redis holds data that's fine to lose (worst case: fall back to normal behavior).
+- **Keys hashed, never stored raw** - a DB breach never exposes usable credentials.
+- **`usage_summaries` separate from `requests`** - reading a running total stays cheap regardless of history size.
+- **Pricing table is sourced and dated** - LLM pricing changes; guessed numbers rot silently.
