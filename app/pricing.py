@@ -1,7 +1,15 @@
+# The formula - standard across every LLM provider:
+# cost = (prompt_tokens / 1,000,000) × input_price_per_million
+#      + (completion_tokens / 1,000,000) × output_price_per_million
+
+
 # source: https://openai.com/api/pricing/
 # source: https://www.anthropic.com/pricing
+
 # NOTE: prices change over time. Verify against source links before relying
 # on cost figures for real billing decisions.
+
+
 MODEL_PRICING = {
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "gpt-4o": {"input": 2.50, "output": 10.00},
