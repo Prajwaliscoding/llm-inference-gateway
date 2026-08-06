@@ -6,6 +6,10 @@ from app.main import app
 from unittest.mock import patch, AsyncMock
 import httpx
 import json
+import pytest
+from unittest.mock import AsyncMock, patch
+from app.cache import build_cache_key, find_cache_key, save_cache_value
+from app.schemas.chat import Request, Message, Response, Choice, ResponseMessage, Usage
 
 def test_valid_request():
     data = {
@@ -87,3 +91,57 @@ def test_full_flow_with_fixture():
     assert response.status_code == 200
     assert response.json()["choices"][0]["message"]["content"] == "Hello! How can I help you today?"
     assert response.json()["id"] == "chatcmpl-abc123"
+
+
+
+@pytest.mark.asyncio
+async def test_cache_hit_skips_provider(redis_session):
+    request = Request(
+        model="gpt-4o-mini",
+        messages=[Message(role="user", content="2+2?")],
+    )
+
+    fake_response = Response(
+        id="test-id",
+        object="chat.completion",
+        created=123,
+        model="gpt-4o-mini",
+        choices=[Choice(index=0, message=ResponseMessage(role="assistant", content="4"), finish_reason="stop")],
+        usage=Usage(prompt_tokens=5, completion_tokens=1, total_tokens=6),
+    )
+
+    with patch("app.cache.redis_client", redis_session):
+        cache_key = build_cache_key(request)
+        await save_cache_value(cache_key, fake_response)
+
+        cached = await find_cache_key(cache_key)
+
+        assert cached is not None
+        assert cached["choices"][0]["message"]["content"] == "4"
+
+@pytest.mark.asyncio
+async def test_rate_limit_returns_429(redis_session):
+    from app.rate_limit import check_rate_limit, RATE_LIMIT
+    from fastapi import HTTPException
+
+    with patch("app.rate_limit.redis_client", redis_session):
+        for _ in range(RATE_LIMIT):
+            await check_rate_limit(api_key_id=1)
+
+        with pytest.raises(HTTPException) as exc_info:
+            await check_rate_limit(api_key_id=1)
+
+        assert exc_info.value.headers is not None
+        assert "retry-after" in [h.lower() for h in exc_info.value.headers.keys()]
+
+def test_resolve_model_short_prompt():
+    from app.providers.factory import resolve_model
+    request = Request(model="auto", messages=[Message(role="user", content="hi")])
+    assert resolve_model(request) == "gpt-4o-mini"
+
+
+def test_resolve_model_long_prompt():
+    from app.providers.factory import resolve_model
+    long_content = "x" * 600
+    request = Request(model="auto", messages=[Message(role="user", content=long_content)])
+    assert resolve_model(request) == "gpt-4o"
