@@ -5,7 +5,7 @@ from app.config import settings
 from app.auth import verify_token
 from app.logging_config import configure_logging, logger
 import uuid
-from app.providers.factory import get_provider
+from app.providers.factory import get_provider, resolve_model
 from app.schemas.api_key import CreateApiKeyRequest, CreateApiKeyResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
@@ -44,9 +44,9 @@ async def chat_completions(request: Request, api_key:ApiKey = Depends(verify_tok
       find_in_cache = await find_cache_key(cache_key)
       if find_in_cache is not None:
             return Response(**find_in_cache)
-      
 
-      provider = get_provider(request.model)
+      resolved_model = resolve_model(request)
+      provider = get_provider(resolved_model)
       response = await provider.chat_completion(request)
       await save_cache_value(cache_key, response)
       return response
