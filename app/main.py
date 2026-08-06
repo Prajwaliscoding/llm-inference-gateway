@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from app.cache import build_cache_key, save_cache_value, find_cache_key
+from app.providers.anthropic_provider import AnthropicProvider
 from app.schemas.chat import Request, Response
 from app.config import settings
 from app.auth import verify_token
@@ -14,6 +15,7 @@ from app.models.api_key import ApiKey
 from app.auth import verify_admin
 from app.rate_limit import check_rate_limit
 from app.pricing import calculate_cost
+from app.usage import record_usage
 
 configure_logging()
 
@@ -38,7 +40,9 @@ async def logging_middleware(request, call_next):
 
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: Request, api_key:ApiKey = Depends(verify_token)) -> Response:
+async def chat_completions(request: Request, 
+                           api_key:ApiKey = Depends(verify_token),
+                           db: AsyncSession = Depends(get_db)) -> Response:
       await check_rate_limit(api_key.id)
 
       cache_key = build_cache_key(request)
@@ -48,6 +52,7 @@ async def chat_completions(request: Request, api_key:ApiKey = Depends(verify_tok
 
       resolved_model = resolve_model(request)
       provider = get_provider(resolved_model)
+
       request.model = resolved_model
       response = await provider.chat_completion(request)
       cost = calculate_cost(
@@ -55,6 +60,15 @@ async def chat_completions(request: Request, api_key:ApiKey = Depends(verify_tok
             response.usage.prompt_tokens,
             response.usage.completion_tokens
             )
+
+      provider_name = "anthropic" if isinstance(provider, AnthropicProvider) else "openai"
+      await record_usage( db=db,
+                        api_key_id=api_key.id,
+                        model=resolved_model,
+                        provider=provider_name,
+                        prompt_tokens=response.usage.prompt_tokens,
+                        completion_tokens=response.usage.completion_tokens,
+                        cost=cost)
 
       await save_cache_value(cache_key, response)
       return response
