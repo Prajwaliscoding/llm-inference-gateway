@@ -13,6 +13,7 @@ from app.security import generate_api_key, hash_api_key
 from app.models.api_key import ApiKey
 from app.auth import verify_admin
 from app.rate_limit import check_rate_limit
+from app.pricing import calculate_cost
 
 configure_logging()
 
@@ -49,6 +50,12 @@ async def chat_completions(request: Request, api_key:ApiKey = Depends(verify_tok
       provider = get_provider(resolved_model)
       request.model = resolved_model
       response = await provider.chat_completion(request)
+      cost = calculate_cost(
+            resolved_model,
+            response.usage.prompt_tokens,
+            response.usage.completion_tokens
+            )
+
       await save_cache_value(cache_key, response)
       return response
 
