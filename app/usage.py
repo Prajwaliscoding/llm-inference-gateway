@@ -1,0 +1,45 @@
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.request_log import RequestLog
+from app.models.usage_summary import UsageSummary
+from datetime import datetime, timezone
+
+async def record_usage(db: AsyncSession, 
+                       api_key_id: int,
+                       model: str,
+                       provider: str,
+                       prompt_tokens: int,
+                       completion_tokens: int,
+                       cost: float) -> None:
+
+    db.add(RequestLog( api_key_id=api_key_id,
+                        model=model,
+                        provider=provider,
+                        prompt_tokens=prompt_tokens,
+                        completion_tokens=completion_tokens,
+                        cost=cost))
+
+    today = datetime.now(timezone.utc).date()
+
+    result = await db.execute(select(UsageSummary).where(UsageSummary.api_key_id == api_key_id,
+                                                          UsageSummary.usage_date == today))
+    
+    summary = result.scalar_one_or_none()
+
+    if summary is None:
+        summary = UsageSummary(
+            api_key_id=api_key_id,
+            usage_date=today,
+            total_requests=1,
+            total_cost=cost,
+            total_tokens=prompt_tokens + completion_tokens,
+        )
+        db.add(summary)
+
+    else:
+        summary.total_requests += 1
+        summary.total_cost += cost
+        summary.total_tokens += prompt_tokens + completion_tokens
+
+    await db.commit()
+
