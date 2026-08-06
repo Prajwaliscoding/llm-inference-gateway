@@ -52,11 +52,9 @@ async def chat_completions(request: Request, api_key:ApiKey = Depends(verify_tok
       return response
 
 
-
 @app.get("/health")
 async def health():
       return {"status":"okay"}
-
 
 
 @app.post("/admin/keys", dependencies=[Depends(verify_admin)])
