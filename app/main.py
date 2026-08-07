@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
 from app.cache import build_cache_key, save_cache_value, find_cache_key
 from app.providers.anthropic_provider import AnthropicProvider
+from app.providers.base import LLMProvider
 from app.providers.failover import call_with_failover
 from app.schemas.chat import Request, Response
 from app.config import settings
@@ -56,7 +57,8 @@ async def chat_completions(request: Request,
 
       fallback_provider = get_fallback_provider(provider)
       request.model = resolved_model
-      response = await call_with_failover(provider, fallback_provider, request)
+      result_info: dict[str, LLMProvider] = {}
+      response = await call_with_failover(provider, fallback_provider, request, result_info)
 
       cost = calculate_cost(
             resolved_model,
@@ -64,7 +66,7 @@ async def chat_completions(request: Request,
             response.usage.completion_tokens
             )
 
-      provider_name = "anthropic" if isinstance(provider, AnthropicProvider) else "openai"
+      provider_name = "anthropic" if isinstance(result_info["provider"], AnthropicProvider) else "openai"
       await record_usage( db=db,
                         api_key_id=api_key.id,
                         model=resolved_model,
