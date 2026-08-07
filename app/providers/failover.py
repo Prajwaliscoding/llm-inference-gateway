@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from app.providers.base import LLMProvider
 from app.providers.exceptions import ProviderError
 from app.schemas.chat import Request, Response
-from logging_config import logger
+from app.logging_config import logger
 
 async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, request: Request,
                              result_info: dict[str, LLMProvider]) -> Response:
