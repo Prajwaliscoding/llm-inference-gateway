@@ -1,5 +1,6 @@
 from app.providers.base import LLMProvider
 from app.config import settings
+from app.providers.exceptions import ProviderConnectionError, ProviderServerError, ProviderTimeoutError
 from app.schemas.chat import Request, Response, Choice, ResponseMessage, Usage
 import httpx
 from app.logging_config import logger
@@ -78,14 +79,19 @@ class AnthropicProvider(LLMProvider):
                     },
                     timeout=30.0,
                 )
-            except httpx.RequestError:
-                logger.error("provider unreachable", provider="anthropic")
-                raise HTTPException(status_code=502, detail="Failed to reach Anthropic")
 
+            except httpx.TimeoutException as e:
+                    logger.error("provider timeout error", provider="anthropic")
+                    raise ProviderTimeoutError(str(e)) from e
+            
+            except httpx.RequestError as e:
+                logger.error("provider unreachable", provider="anthropic")
+                raise ProviderConnectionError(str(e)) from e
+            
 
             if response.status_code >= 500:
                 logger.error("provider server error", provider="anthropic", status_code=response.status_code)
-                raise HTTPException(status_code=502, detail="Anthropic server failed")
+                raise ProviderServerError(response.status_code, "Anthropic server failed")
 
             data = response.json() 
             return _normalize_anthropic_response(data)

@@ -18,4 +18,10 @@ def resolve_model(request: Request) -> str:
         return "gpt-4o-mini"
     else:
         return "gpt-4o"
+
+
+def get_fallback_provider(primary: LLMProvider) -> LLMProvider:
+    if isinstance(primary, OpenAIProvider):
+        return AnthropicProvider()
+    return OpenAIProvider()
     

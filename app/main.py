@@ -1,12 +1,13 @@
 from fastapi import FastAPI, Depends
 from app.cache import build_cache_key, save_cache_value, find_cache_key
 from app.providers.anthropic_provider import AnthropicProvider
+from app.providers.failover import call_with_failover
 from app.schemas.chat import Request, Response
 from app.config import settings
 from app.auth import verify_token
 from app.logging_config import configure_logging, logger
 import uuid
-from app.providers.factory import get_provider, resolve_model
+from app.providers.factory import get_fallback_provider, get_provider, resolve_model
 from app.schemas.api_key import CreateApiKeyRequest, CreateApiKeyResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
@@ -53,8 +54,10 @@ async def chat_completions(request: Request,
       resolved_model = resolve_model(request)
       provider = get_provider(resolved_model)
 
+      fallback_provider = get_fallback_provider(provider)
       request.model = resolved_model
-      response = await provider.chat_completion(request)
+      response = await call_with_failover(provider, fallback_provider, request)
+
       cost = calculate_cost(
             resolved_model,
             response.usage.prompt_tokens,
