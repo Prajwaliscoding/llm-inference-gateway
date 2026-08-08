@@ -1,5 +1,4 @@
 from fastapi import HTTPException
-
 from app.providers.base import LLMProvider
 from app.providers.exceptions import ProviderError
 from app.schemas.chat import Request, Response
