@@ -45,3 +45,14 @@ def is_available(provider_name: str) -> bool:
         return True
     
     return False
+
+def update_circuit(provider_name: str, success: bool) -> None:
+    entry = circuit_state[provider_name]
+    if entry["state"] == "half_open":     # for half-open
+        entry["state"] = "closed" if success else "open"
+        if entry["state"] == "open":
+            entry["opened_at"] = time.time()
+        return
+    if get_failure_rate(provider_name) >= FAILURE_THRESHOLD: # for closed as the (above if) will fail when the circuit is closed for this provider
+        entry["state"] = "open"
+        entry["opened_at"] = time.time()
