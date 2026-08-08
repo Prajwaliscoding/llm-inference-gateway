@@ -4,7 +4,7 @@ from app.providers.exceptions import ProviderError
 from app.providers.openai_provider import OpenAIProvider
 from app.schemas.chat import Request, Response
 from app.logging_config import logger
-from app.providers.circuit_breaker import is_available, update_circuit
+from app.providers.circuit_breaker import is_available, update_circuit, record_outcome
 
 
 async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, request: Request,
@@ -13,7 +13,7 @@ async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, reques
     providers = [primary, fallback]
 
     for provider in providers:
-        
+
         name = "openai" if isinstance(provider, OpenAIProvider) else "anthropic"
         if not is_available(name):
             logger.info("circuit open, skipping provider", provider=name)
@@ -22,10 +22,12 @@ async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, reques
         
         try:
             response = await provider.chat_completion(request)
+            record_outcome(name, success=True)
             update_circuit(name, success=True)
             result_info["provider"] = provider   # record who succeeded
             return response       
         except ProviderError as e:
+            record_outcome(name, success=False)
             update_circuit(name, success=False)
             logger.error("provider failed, trying next",
                             provider=type(provider).__name__,
