@@ -20,7 +20,27 @@ circuit_state = {
 def record_outcome(provider_name: str, success: bool) -> None:
     circuit_state[provider_name]["outcomes"].append((time.time(), success))
 
+def get_failure_rate(provider_name: str) -> float:
+    now = time.time()
+    outcomes = circuit_state[provider_name]["outcomes"]
     
+    while outcomes and now - outcomes[0][0] > FAILURE_WINDOW_SECONDS:
+        outcomes.popleft()
+    
+    if not outcomes:
+        return 0.0
+    
+    failures = 0
+    for timestamp, success in outcomes:
+        if not success:
+            failures += 1
+    
+    return failures / len(outcomes)
+
+
+
+
+
 async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, request: Request,
                              result_info: dict[str, LLMProvider]) -> Response:
 
