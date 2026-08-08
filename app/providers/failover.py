@@ -38,7 +38,19 @@ def get_failure_rate(provider_name: str) -> float:
     return failures / len(outcomes)
 
 
-
+def is_available(provider_name: str) -> bool:
+    entry = circuit_state[provider_name]
+    if entry["state"] == "closed":
+        return True
+    if entry["state"] == "open":
+        if time.time() - entry["opened_at"] >= COOLDOWN_SECONDS:
+            entry["state"] = "half_open"
+            return True   # allow a test request
+        return False
+    if entry["state"] == "half_open":
+        return True
+    
+    return False
 
 
 async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, request: Request,
