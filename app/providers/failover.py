@@ -5,6 +5,7 @@ from app.providers.openai_provider import OpenAIProvider
 from app.schemas.chat import Request, Response
 from app.logging_config import logger
 from app.providers.circuit_breaker import is_available, update_circuit, record_outcome
+from app.metrics import provider_failures_total
 
 
 async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, request: Request,
@@ -29,6 +30,7 @@ async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, reques
         except ProviderError as e:
             record_outcome(name, success=False)
             update_circuit(name, success=False)
+            provider_failures_total.labels(provider=name, error_type=type(e).__name__).inc()
             logger.error("provider failed, trying next",
                             provider=type(provider).__name__,
                             error=str(e))

@@ -21,7 +21,7 @@ from app.usage import record_usage
 from fastapi import Response as FastAPIResponse
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 import time
-from app.metrics import request_duration_seconds, requests_total
+from app.metrics import request_duration_seconds, requests_total, cache_hits_total, cache_misses_total
 
 configure_logging()
 
@@ -54,7 +54,9 @@ async def chat_completions(request: Request,
       cache_key = build_cache_key(request)
       find_in_cache = await find_cache_key(cache_key)
       if find_in_cache is not None:
+            cache_hits_total.inc()
             return Response(**find_in_cache)
+      cache_misses_total.inc()
 
       resolved_model = resolve_model(request)
       provider = get_provider(resolved_model)
