@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from app.cache import build_cache_key, save_cache_value, find_cache_key
 from app.providers.anthropic_provider import AnthropicProvider
 from app.providers.base import LLMProvider
@@ -20,6 +20,8 @@ from app.pricing import calculate_cost
 from app.usage import record_usage
 from fastapi import Response as FastAPIResponse
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+import time
+from app.metrics import request_duration_seconds, requests_total
 
 configure_logging()
 
@@ -60,7 +62,21 @@ async def chat_completions(request: Request,
       fallback_provider = get_fallback_provider(provider)
       request.model = resolved_model
       result_info: dict[str, LLMProvider] = {}
-      response = await call_with_failover(provider, fallback_provider, request, result_info)
+
+      start = time.time()
+      status = 500 # if try and except doesn't give status, finally, needs it
+      try: 
+            response = await call_with_failover(provider, fallback_provider, request, result_info)
+            status = "200"
+      except HTTPException as e:
+            status = str(e.status_code)
+            raise
+      finally:
+            duration = time.time() - start
+            served_by = result_info.get("provider")
+            provider_name = "anthropic" if isinstance(served_by, AnthropicProvider) else "openai"
+            requests_total.labels(provider=provider_name, model=resolved_model, status=status).inc()
+            request_duration_seconds.labels(provider=provider_name, model=resolved_model).observe(duration)
 
       cost = calculate_cost(
             resolved_model,
