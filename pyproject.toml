@@ -10,6 +10,7 @@ dependencies = [
     "fastapi>=0.140.0",
     "greenlet>=3.5.4",
     "httpx>=0.28.1",
+    "prometheus-client>=0.26.0",
     "pydantic-settings>=2.14.2",
     "redis>=8.1.0",
     "sqlalchemy>=2.0.51",
