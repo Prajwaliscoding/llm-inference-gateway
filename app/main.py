@@ -18,6 +18,8 @@ from app.auth import verify_admin
 from app.rate_limit import check_rate_limit
 from app.pricing import calculate_cost
 from app.usage import record_usage
+from fastapi import Response as FastAPIResponse
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 configure_logging()
 
@@ -94,3 +96,8 @@ async def create_api_key(request:CreateApiKeyRequest, db:AsyncSession =Depends(g
       await db.commit()
 
       return CreateApiKeyResponse(id=new_key.id, name=new_key.name, api_key=raw_key)                         
+
+@app.get("/metrics")
+async def metrics():
+      return FastAPIResponse(content = generate_latest(), media_type= CONTENT_TYPE_LATEST)
+      
