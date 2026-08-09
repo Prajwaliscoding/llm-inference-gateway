@@ -1,9 +1,12 @@
 from collections import deque
 import time
+from app.metrics import circuit_breaker_state
 
 FAILURE_WINDOW_SECONDS = 60
 FAILURE_THRESHOLD = 0.5
 COOLDOWN_SECONDS = 30
+
+STATE_VALUES = {"closed": 0, "open": 1, "half_open": 0.5}
 
 circuit_state = {
     "openai": {"state": "closed", "outcomes": deque(), "opened_at": None},
@@ -39,6 +42,7 @@ def is_available(provider_name: str) -> bool:
     if entry["state"] == "open":
         if time.time() - entry["opened_at"] >= COOLDOWN_SECONDS:
             entry["state"] = "half_open"
+            circuit_breaker_state.labels(provider=provider_name).set(STATE_VALUES[entry["state"]])
             return True   # allow a test request
         return False
     if entry["state"] == "half_open":
@@ -50,9 +54,11 @@ def update_circuit(provider_name: str, success: bool) -> None:
     entry = circuit_state[provider_name]
     if entry["state"] == "half_open":     # for half-open
         entry["state"] = "closed" if success else "open"
+        circuit_breaker_state.labels(provider=provider_name).set(STATE_VALUES[entry["state"]])
         if entry["state"] == "open":
             entry["opened_at"] = time.time()
         return
     if get_failure_rate(provider_name) >= FAILURE_THRESHOLD: # for closed as the (above if) will fail when the circuit is closed for this provider
         entry["state"] = "open"
+        circuit_breaker_state.labels(provider=provider_name).set(STATE_VALUES[entry["state"]])
         entry["opened_at"] = time.time()

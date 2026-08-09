@@ -21,7 +21,7 @@ from app.usage import record_usage
 from fastapi import Response as FastAPIResponse
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 import time
-from app.metrics import request_duration_seconds, requests_total, cache_hits_total, cache_misses_total
+from app.metrics import request_duration_seconds, requests_total, cache_hits_total, cache_misses_total, cost_cents_total
 
 configure_logging()
 
@@ -85,6 +85,7 @@ async def chat_completions(request: Request,
             response.usage.prompt_tokens,
             response.usage.completion_tokens
             )
+      cost_cents_total.labels(provider=provider_name, model=resolved_model).inc(cost)
 
       provider_name = "anthropic" if isinstance(result_info["provider"], AnthropicProvider) else "openai"
       await record_usage( db=db,
