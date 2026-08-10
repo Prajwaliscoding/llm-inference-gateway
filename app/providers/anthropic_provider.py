@@ -93,6 +93,11 @@ class AnthropicProvider(LLMProvider):
                 logger.error("provider server error", provider="anthropic", status_code=response.status_code)
                 raise ProviderServerError(response.status_code, "Anthropic server failed")
 
+            if response.status_code >= 400:
+                error_body = response.json()
+                logger.error("provider client error", provider="anthropic", status_code=response.status_code, body=error_body)
+                raise HTTPException(status_code=response.status_code, detail=error_body)
+
             data = response.json() 
             return _normalize_anthropic_response(data)
 
