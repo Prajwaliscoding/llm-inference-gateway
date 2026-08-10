@@ -48,6 +48,7 @@ The response shows the raw key **once**. Copy it and send it to the client; only
 
 ## Architecture
 
+```
 app/
 ├── main.py # routes, middleware, request pipeline
 ├── auth.py # bearer token verification (client + admin)
@@ -81,8 +82,11 @@ tests/
 ├── test_main.py
 └── fixtures/openai_response.json
 
+```
+
 ## Request flow
 
+```
 Client
 │
 ▼
@@ -109,6 +113,7 @@ call_with_failover()
 │
 ▼
 All providers exhausted → 503
+```
 
 ## Observability
 
