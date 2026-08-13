@@ -11,3 +11,6 @@ wheels/
 
 #env
 .env
+
+# manifest
+k8s/01-secret.yaml

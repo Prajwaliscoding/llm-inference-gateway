@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  namespace: llm-gateway
+data:
+  LOG_LEVEL: "info"
+  CACHE_TTL_SECONDS: "300"
