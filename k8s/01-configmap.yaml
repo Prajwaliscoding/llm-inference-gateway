@@ -6,3 +6,8 @@ metadata:
 data:
   LOG_LEVEL: "info"
   CACHE_TTL_SECONDS: "300"
+  POSTGRES_USER: "gateway_user"
+  POSTGRES_DB: "gateway_db"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  REDIS_HOST: "redis"
