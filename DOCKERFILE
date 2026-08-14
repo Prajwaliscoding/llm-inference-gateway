@@ -11,6 +11,9 @@ RUN uv sync --no-dev
 
 COPY app/ ./app/
 
+COPY alembic/ ./alembic/
+COPY alembic.ini ./alembic.ini
+
 # Stage 2
 FROM python:3.12-slim
 
@@ -19,6 +22,9 @@ WORKDIR /dockerapp
 COPY --from=builder /dockerapp/.venv /dockerapp/.venv
 
 COPY --from=builder /dockerapp/app /dockerapp/app
+
+COPY --from=builder /dockerapp/alembic /dockerapp/alembic
+COPY --from=builder /dockerapp/alembic.ini /dockerapp/alembic.ini
 
 ENV PATH="/dockerapp/.venv/bin:$PATH"
 
