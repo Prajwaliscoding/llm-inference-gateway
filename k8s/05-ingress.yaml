@@ -8,9 +8,13 @@ metadata:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:878598435833:certificate/ad84d443-02f0-4de6-9664-2255bbae20ab
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
 spec:
   rules:
-    - http:
+    - host: gateway.prajwalkhatiwada.com
+      http:
         paths:
           - path: /
             pathType: Prefix
