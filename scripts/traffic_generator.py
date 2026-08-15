@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Traffic generator for the LLM Inference Gateway.
 
@@ -126,7 +125,7 @@ ALL_PROMPTS = SHORT_PROMPTS + MEDIUM_PROMPTS + LONG_PROMPTS
 CACHEABLE_PROMPTS = random.sample(ALL_PROMPTS, 15)
 
 
-def build_request_body() -> dict:
+def build_request_body() -> tuple[dict, bool]:
     """Randomly build a chat completion request body."""
     # 40% chance of reusing a cacheable prompt, 60% chance of any prompt
     if random.random() < 0.4:
