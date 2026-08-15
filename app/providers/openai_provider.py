@@ -14,6 +14,10 @@ class OpenAIProvider(LLMProvider):
 
 
     async def chat_completion(self, request: Request) -> Response:
+        model = request.model if not request.model.startswith("claude") else "gpt-4o-mini"
+        payload = request.model_dump()
+        payload["model"] = model
+        
         try:
             async with httpx.AsyncClient() as client:
                 logger.info("provider called", provider ="openai")
@@ -33,8 +37,18 @@ class OpenAIProvider(LLMProvider):
             logger.error("provider server error", provider="openai", status_code=response.status_code)
             raise ProviderServerError(response.status_code, "OpenAI server failed")
 
+        if response.status_code in (401, 403, 429):
+            error_body = response.json()
+            logger.error("provider auth/rate-limit error", provider="openai", status_code=response.status_code, body=error_body)
+            raise ProviderServerError(response.status_code, str(error_body))
+
+        if response.status_code >= 400:
+            error_body = response.json()
+            logger.error("provider client error", provider="openai", status_code=response.status_code, body=error_body)
+            raise HTTPException(status_code=response.status_code, detail=error_body)
+
         data = response.json()
-            
+
         return Response(**data)
 
         

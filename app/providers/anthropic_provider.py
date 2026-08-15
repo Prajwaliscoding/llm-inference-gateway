@@ -56,8 +56,10 @@ class AnthropicProvider(LLMProvider):
             else:
                 messages.append({"role": msg.role, "content": msg.content})
 
+        model = request.model if request.model.startswith("claude") else "claude-haiku-4-5-20251001"
+
         payload = {
-            "model": request.model,
+            "model": model,
             "messages": messages,
             "max_tokens": request.max_tokens or 1024,
 
@@ -92,6 +94,11 @@ class AnthropicProvider(LLMProvider):
             if response.status_code >= 500:
                 logger.error("provider server error", provider="anthropic", status_code=response.status_code)
                 raise ProviderServerError(response.status_code, "Anthropic server failed")
+
+            if response.status_code in (401, 403, 429):
+                error_body = response.json()
+                logger.error("provider auth/rate-limit error", provider="anthropic", status_code=response.status_code, body=error_body)
+                raise ProviderServerError(response.status_code, str(error_body))
 
             if response.status_code >= 400:
                 error_body = response.json()
