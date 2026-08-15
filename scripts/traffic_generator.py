@@ -26,7 +26,7 @@ REQUESTS_PER_INTERVAL = 1
 INTERVAL_SECONDS = float(os.environ.get("INTERVAL_SECONDS", "5"))
 TIMEOUT_SECONDS = 30
 
-EXPLICIT_MODELS = ["gpt-4o-mini", "claude-3-5-haiku-20241022"]
+EXPLICIT_MODELS = ["gpt-4o-mini", "claude-haiku-4-5-20251001"]
 
 logging.basicConfig(
     level=logging.INFO,
