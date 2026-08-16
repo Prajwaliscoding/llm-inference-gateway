@@ -33,7 +33,7 @@ Python · FastAPI · PostgreSQL · Redis · AWS (EKS, RDS, EC2, Route 53, ACM, I
 ## Quick start
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Prajwaliscoding/llm-inference-gateway.git
 cd llm-inference-gateway
 docker compose up --build
 ```
