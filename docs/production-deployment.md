@@ -13,7 +13,7 @@ The gateway was deployed to a real AWS environment: EKS cluster, RDS Postgres, H
 - **Access control:** IAM Roles for Service Accounts (IRSA), no static AWS credentials in the cluster
 - **Observability:** `kube-prometheus-stack` via Helm, custom `ServiceMonitor`, Grafana public via its own Ingress
 
-![EKS cluster Active](./images/eks-console-active.png)
+![EKS cluster Active](./images/eks-cluster-active.png)
 
 ![Gateway pods Running](images/gateway-pods-running.png)
 
