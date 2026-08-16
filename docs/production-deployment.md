@@ -13,57 +13,41 @@ The gateway was deployed to a real AWS environment: EKS cluster, RDS Postgres, H
 - **Access control:** IAM Roles for Service Accounts (IRSA), no static AWS credentials in the cluster
 - **Observability:** `kube-prometheus-stack` via Helm, custom `ServiceMonitor`, Grafana public via its own Ingress
 
-> 📸 **Screenshot:** EKS cluster Active in AWS Console
-> `docs/images/eks-console-active.png`
+![EKS cluster Active](images/eks-console-active.png)
 
-> 📸 **Screenshot:** `kubectl get pods -n llm-gateway` showing gateway pods Running
-> `docs/images/gateway-pods-running.png`
+![Gateway pods Running](images/gateway-pods-running.png)
 
 ## Database
 
 RDS Postgres is not publicly accessible; migrations run from a pod inside the cluster rather than a developer laptop, keeping the database's attack surface minimal.
 
-> 📸 **Screenshot:** RDS instance Available, with security group scoped to EKS nodes only
-> `docs/images/rds-available.png`
+![RDS instance Available](images/rds-available.png)
 
 ## HTTPS
 
-> 📸 **Screenshot:** ACM certificate Issued
-> `docs/images/acm-certificate-issued.png`
+![ACM certificate Issued](images/acm-certificate-issued.png)
 
-> 📸 **Screenshot:** `curl -v https://gateway.yourdomain.com/health` showing a valid SSL handshake
-> `docs/images/https-verified.png`
+![HTTPS verified via curl](images/https-verified.png)
 
 ## Observability
 
 The same Grafana dashboard used locally (`grafana/dashboard.json`) was imported into this cluster's Grafana and populated with real traffic.
 
-> 📸 **Screenshot:** Full Grafana dashboard, request rate/latency/cost/cache all populated
-> `docs/images/grafana-dashboard-full.png`
+![Grafana dashboard populated with real data](images/grafana-dashboard-full.png)
 
 ## Load testing
 
 A continuous traffic generator ran on a dedicated EC2 instance: 100+ varied prompts, mixed cached/unique requests, mixed streaming, mixed `"auto"`/explicit model selection.
 
-> 📸 **Screenshot:** Traffic generator log showing sustained `status=200` requests
-> `docs/images/traffic-generator-log.png`
+![Traffic generator log showing sustained requests](images/traffic-generator-log.png)
 
 ## Failover verification
 
 Automatic provider failover was tested live: one provider's credentials were invalidated, and the gateway's fallback behavior was confirmed via a successful response and a visible shift in Grafana's Provider Distribution panel.
 
-> 📸 **Screenshot:** Successful response returned during a simulated provider outage
-> `docs/images/failover-success-response.png`
+![Successful response during simulated provider outage](images/failover-success-response.png)
 
-> 📸 **Screenshot:** Grafana Provider Distribution panel showing the failover shift
-> `docs/images/failover-dashboard-shift.png`
-
-## Teardown
-
-Infrastructure was deleted after validation, following the same cost-discipline principle used throughout: spin up, prove it works, document it, tear down.
-
-> 📸 **Screenshot:** Resources confirmed terminated / final Cost Explorer view
-> `docs/images/teardown-confirmed.png`
+![Grafana Provider Distribution shift during failover](images/failover-dashboard-shift.png)
 
 ---
 
