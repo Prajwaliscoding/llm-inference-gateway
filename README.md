@@ -44,8 +44,7 @@ Full first-run instructions, including creating your first API key, are in **[do
 
 This gateway was deployed live to AWS EKS with a real domain, HTTPS, autoscaling, RDS Postgres, and full Prometheus/Grafana observability. The infrastructure was torn down after validation to avoid ongoing cost, but the full deployment process and results are documented with screenshots in **[docs/production-deployment.md](docs/production-deployment.md)**.
 
-> 📸 **Screenshot:** Grafana dashboard showing live request rate, latency, and cost data
-> `docs/images/grafana-overview.png`
+![Grafana dashboard populated with real data](images/grafana-dashboard-full.png)
 
 ## Tests
 
