@@ -60,4 +60,4 @@ Real, throwaway Postgres + Redis containers via `testcontainers-python`; only ex
 
 ## Author
 
-Prajwal Khatiwada, CS Undergraduate, The University of Texas at Arlington
+Prajwal Khatiwada, CS Undergraduate
