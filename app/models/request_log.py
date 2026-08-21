@@ -16,6 +16,8 @@ class RequestLog(Base):
     completion_tokens: Mapped[int] = mapped_column()
     cost: Mapped[float] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    cache_hit: Mapped[bool] = mapped_column(default=False)
+    latency_ms: Mapped[int] = mapped_column(default=0)
 
 
 
