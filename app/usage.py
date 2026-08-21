@@ -4,20 +4,24 @@ from app.models.request_log import RequestLog
 from app.models.usage_summary import UsageSummary
 from datetime import datetime, timezone
 
-async def record_usage(db: AsyncSession, 
+async def record_usage(db: AsyncSession,
                        api_key_id: int,
                        model: str,
                        provider: str,
                        prompt_tokens: int,
                        completion_tokens: int,
-                       cost: float) -> None:
+                       cost: float,
+                       cache_hit: bool = False,
+                       latency_ms: int = 0) -> None:
 
-    db.add(RequestLog( api_key_id=api_key_id,
+    db.add(RequestLog(api_key_id=api_key_id,
                         model=model,
                         provider=provider,
                         prompt_tokens=prompt_tokens,
                         completion_tokens=completion_tokens,
-                        cost=cost))
+                        cost=cost,
+                        cache_hit=cache_hit,
+                        latency_ms=latency_ms))
 
     today = datetime.now(timezone.utc).date()
 
