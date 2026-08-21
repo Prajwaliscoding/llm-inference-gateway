@@ -129,5 +129,21 @@ app.add_middleware(
     allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
+
+from app.schemas.signup import SignupRequest, SignupResponse
+@app.post("/auth/signup")
+async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
+    raw_key = generate_api_key()
+    hashed = hash_api_key(raw_key)
+
+    new_key = ApiKey(
+        hashed_key=hashed,
+        name=request.email,
+        email=request.email,
+    )
+    db.add(new_key)
+    await db.commit()
+
+    return SignupResponse(id=new_key.id, name=new_key.name, api_key=raw_key)
