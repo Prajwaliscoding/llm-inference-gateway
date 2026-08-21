@@ -119,4 +119,15 @@ async def create_api_key(request:CreateApiKeyRequest, db:AsyncSession =Depends(g
 @app.get("/metrics")
 async def metrics():
       return FastAPIResponse(content = generate_latest(), media_type= CONTENT_TYPE_LATEST)
-      
+
+
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
