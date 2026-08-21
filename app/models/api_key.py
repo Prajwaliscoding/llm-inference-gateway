@@ -12,3 +12,4 @@ class ApiKey(Base):
     name:Mapped[str] = mapped_column()
     created_at:Mapped[datetime] = mapped_column(DateTime,server_default=func.now())
     is_active:Mapped[bool]=mapped_column(default=True)
+    email: Mapped[str | None] = mapped_column(nullable=True)
