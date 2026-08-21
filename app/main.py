@@ -52,9 +52,23 @@ async def chat_completions(request: Request,
       await check_rate_limit(api_key.id)
 
       cache_key = build_cache_key(request)
+
+      start = time.time()
       find_in_cache = await find_cache_key(cache_key)
       if find_in_cache is not None:
             cache_hits_total.inc()
+            latency_ms = int((time.time() - start) * 1000)
+            await record_usage(
+                  db=db,
+                  api_key_id=api_key.id,
+                  model=request.model,
+                  provider="cache",
+                  prompt_tokens=0,
+                  completion_tokens=0,
+                  cost=0.0,
+                  cache_hit=True,
+                  latency_ms=latency_ms,
+            )
             return Response(**find_in_cache)
       cache_misses_total.inc()
 
@@ -65,7 +79,6 @@ async def chat_completions(request: Request,
       request.model = resolved_model
       result_info: dict[str, LLMProvider] = {}
 
-      start = time.time()
       status = 500 # if try and except doesn't give status, finally, needs it
       try: 
             response = await call_with_failover(provider, fallback_provider, request, result_info)
@@ -88,13 +101,15 @@ async def chat_completions(request: Request,
       cost_cents_total.labels(provider=provider_name, model=resolved_model).inc(cost)
 
       provider_name = "anthropic" if isinstance(result_info["provider"], AnthropicProvider) else "openai"
-      await record_usage( db=db,
-                        api_key_id=api_key.id,
-                        model=resolved_model,
-                        provider=provider_name,
-                        prompt_tokens=response.usage.prompt_tokens,
-                        completion_tokens=response.usage.completion_tokens,
-                        cost=cost)
+      await record_usage(db=db,
+                  api_key_id=api_key.id,
+                  model=resolved_model,
+                  provider=provider_name,
+                  prompt_tokens=response.usage.prompt_tokens,
+                  completion_tokens=response.usage.completion_tokens,
+                  cost=cost,
+                  cache_hit=False,
+                  latency_ms=int(duration * 1000))
 
       await save_cache_value(cache_key, response)
       return response
