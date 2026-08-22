@@ -27,9 +27,15 @@ export default function Playground({ apiKey, onRequestComplete }) {
     }
   }
 
+  const curlCommand = `curl -X POST ${import.meta.env.VITE_API_URL}/dashboard/failover-demo \\
+  -H "Authorization: Bearer admin-key" \\
+  -H "Content-Type: application/json" \\
+  -d '{"provider": "openai", "seconds": 90}'`;
+
   return (
     <div className="border rounded-lg p-4">
       <p className="text-sm text-gray-500 mb-3">Playground</p>
+
       <form onSubmit={handleSubmit} className="space-y-3">
         <select
           value={model}
@@ -57,6 +63,24 @@ export default function Playground({ apiKey, onRequestComplete }) {
           {loading ? "Sending..." : "Send"}
         </button>
       </form>
+
+      <div className="mt-4 p-3 bg-gray-50 border rounded text-xs">
+        <p className="font-medium text-gray-700 mb-2">Failover demo</p>
+        <p className="text-gray-600 mb-2">
+          LLM providers go down or rate-limit sometimes. I built a circuit
+          breaker that tracks failures per provider and automatically routes
+          around one that's failing, so requests keep succeeding instead of
+          erroring out.
+        </p>
+        <p className="text-gray-600 mb-2">
+          This command tells the gateway to treat OpenAI as down for 90
+          seconds. Run it in a terminal, then send a message above within that
+          window. It'll route to Anthropic instead of OpenAI.
+        </p>
+        <pre className="bg-white border rounded p-2 overflow-x-auto whitespace-pre-wrap">
+          {curlCommand}
+        </pre>
+      </div>
 
       {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
 
