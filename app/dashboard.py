@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timezone, timedelta
@@ -81,3 +81,19 @@ async def get_history(
         }
         for log in logs
     ]
+
+
+from app.providers.circuit_breaker import force_provider_down
+from app.auth import verify_admin
+from pydantic import BaseModel
+
+class FailoverDemoRequest(BaseModel):
+    provider: str
+    seconds: int = 30
+
+@router.post("/failover-demo", dependencies=[Depends(verify_admin)])
+async def trigger_failover_demo(request: FailoverDemoRequest):
+    if request.provider not in ("openai", "anthropic"):
+        raise HTTPException(status_code=400, detail="provider must be 'openai' or 'anthropic'")
+    force_provider_down(request.provider, request.seconds)
+    return {"status": "ok", "provider": request.provider, "down_for_seconds": request.seconds}

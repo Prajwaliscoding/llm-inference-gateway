@@ -12,7 +12,16 @@ circuit_state = {
     "openai": {"state": "closed", "outcomes": deque(), "opened_at": None},
     "anthropic": {"state": "closed", "outcomes": deque(), "opened_at": None},
 }
+forced_down: dict[str, float | None] = {
+    "openai": None,
+    "anthropic": None,
+}
 
+def force_provider_down(provider_name: str, seconds: int) -> None:
+    forced_down[provider_name] = time.time() + seconds
+
+def clear_forced_down(provider_name: str) -> None:
+    forced_down[provider_name] = None
 
 def record_outcome(provider_name: str, success: bool) -> None:
     circuit_state[provider_name]["outcomes"].append((time.time(), success))
@@ -35,7 +44,14 @@ def get_failure_rate(provider_name: str) -> float:
     return failures / len(outcomes)
 
 
+
 def is_available(provider_name: str) -> bool:
+    forced_until = forced_down.get(provider_name)
+    if forced_until is not None:
+        if time.time() < forced_until:
+            return False
+        forced_down[provider_name] = None
+        
     entry = circuit_state[provider_name]
     if entry["state"] == "closed":
         return True
