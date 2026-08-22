@@ -22,7 +22,7 @@ async def get_stats(
     api_key: ApiKey = Depends(verify_token),
     db: AsyncSession = Depends(get_db),
 ):
-    since = datetime.now(timezone.utc) - RANGE_MAP[range]
+    since = datetime.utcnow() - RANGE_MAP[range]
 
     base_filter = (RequestLog.api_key_id == api_key.id, RequestLog.created_at >= since)
 
@@ -52,3 +52,32 @@ async def get_stats(
         "avg_latency_ms": round(avg_latency, 2),
         "provider_breakdown": provider_breakdown,
     }
+
+@router.get("/history")
+async def get_history(
+    limit: int = Query(default=20, le=100),
+    offset: int = Query(default=0, ge=0),
+    api_key: ApiKey = Depends(verify_token),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(RequestLog)
+        .where(RequestLog.api_key_id == api_key.id)
+        .order_by(RequestLog.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    logs = result.scalars().all()
+
+    return [
+        {
+            "id": log.id,
+            "model": log.model,
+            "provider": log.provider,
+            "cost": log.cost,
+            "cache_hit": log.cache_hit,
+            "latency_ms": log.latency_ms,
+            "created_at": log.created_at.isoformat(),
+        }
+        for log in logs
+    ]
