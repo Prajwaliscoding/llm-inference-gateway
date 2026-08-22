@@ -2,11 +2,11 @@ export default function LandingPage({ onGetStarted }) {
   return (
     <div className="max-w-2xl mx-auto mt-20 px-6 text-center">
       <h1 className="text-3xl font-bold mb-4">LLM Inference Gateway</h1>
-      <p className="text-gray-600 mb-8">
-        A production-style gateway that routes requests across OpenAI and Anthropic,
-        with automatic failover, caching, and cost tracking — built to survive
-        real provider outages.
-      </p>
+        <p className="text-gray-600 mb-8">
+          I built this to route LLM requests across OpenAI and Anthropic with real
+          failover, caching, and per-request cost tracking. If one provider goes
+          down, the gateway catches it and reroutes automatically.
+        </p>
 
       <div className="border rounded-lg p-6 mb-8 bg-gray-50">
         <p className="text-sm text-gray-500 mb-2">Architecture</p>
