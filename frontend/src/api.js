@@ -11,7 +11,8 @@ async function request(path, apiKey, options = {}) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `Request failed: ${res.status}`);
+    const message = typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail || err);
+    throw new Error(message);
   }
   return res.json();
 }
