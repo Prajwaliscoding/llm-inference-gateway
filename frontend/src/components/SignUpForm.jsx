@@ -103,7 +103,7 @@ export default function SignupForm({ onSignedUp }) {
       <div className="mt-4 p-4 bg-gray-50 border rounded-lg text-sm text-gray-600">
         <p className="font-medium text-gray-700 mb-1">Note on auth</p>
         <p>
-          One thing to know: the API key here is real and gets checked on every
+          The API key here is real and gets checked on every
           request. What I skipped is checking the email. You can type anything
           and still get a working key. I did that on purpose so sign up stays
           one step for the demo.
