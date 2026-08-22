@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import SignupForm from "./components/SignupForm";
+import SignupForm from "./components/SignUpForm";
 import StatsCards from "./components/StatsCards";
 import ProviderChart from "./components/ProviderChart";
 import HistoryTable from "./components/HistoryTable";
