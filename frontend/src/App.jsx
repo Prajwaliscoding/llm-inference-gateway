@@ -15,13 +15,6 @@ export default function App() {
   const [started, setStarted] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (!started) {
-      return <LandingPage onGetStarted={() => setStarted(true)} />;
-    }
-
-    if (!apiKey) {
-      return <SignupForm onSignedUp={setApiKey} />;
-    }
     if (!apiKey) return;
     const [statsRes, historyRes] = await Promise.all([
       fetchStats(apiKey, range),
@@ -34,6 +27,10 @@ export default function App() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  if (!started) {
+    return <LandingPage onGetStarted={() => setStarted(true)} />;
+  }
 
   if (!apiKey) {
     return <SignupForm onSignedUp={setApiKey} />;
