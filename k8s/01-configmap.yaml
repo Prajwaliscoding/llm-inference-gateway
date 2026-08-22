@@ -8,6 +8,6 @@ data:
   CACHE_TTL_SECONDS: "300"
   POSTGRES_USER: "gateway_user"
   POSTGRES_DB: "gateway_db"
-  POSTGRES_HOST: "gateway-db.cnawk4ww8b6e.us-east-2.rds.amazonaws.com"
+  POSTGRES_HOST: "gateway-db.internal.prajwalkhatiwada.com"
   POSTGRES_PORT: "5432"
   REDIS_HOST: "redis"
