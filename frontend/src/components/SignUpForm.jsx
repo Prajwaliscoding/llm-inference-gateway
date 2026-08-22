@@ -109,8 +109,8 @@ export default function SignupForm({ onSignedUp }) {
           one step for the demo.
         </p>
         <p className="mt-2">
-          If I keep building this, real accounts with email verification and
-          login sessions are next.
+          Real accounts with email verification and
+          login sessions are my next upgrade
         </p>
       </div>
     </div>
