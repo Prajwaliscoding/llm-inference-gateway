@@ -5,14 +5,23 @@ import ProviderChart from "./components/ProviderChart";
 import HistoryTable from "./components/HistoryTable";
 import Playground from "./components/Playground";
 import { fetchStats, fetchHistory } from "./api";
+import LandingPage from "./components/LandingPage";
 
 export default function App() {
   const [apiKey, setApiKey] = useState(null);
   const [stats, setStats] = useState(null);
   const [history, setHistory] = useState([]);
   const [range, setRange] = useState("7d");
+  const [started, setStarted] = useState(false);
 
   const loadData = useCallback(async () => {
+    if (!started) {
+      return <LandingPage onGetStarted={() => setStarted(true)} />;
+    }
+
+    if (!apiKey) {
+      return <SignupForm onSignedUp={setApiKey} />;
+    }
     if (!apiKey) return;
     const [statsRes, historyRes] = await Promise.all([
       fetchStats(apiKey, range),
