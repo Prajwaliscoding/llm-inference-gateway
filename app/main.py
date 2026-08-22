@@ -162,3 +162,8 @@ async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
     return SignupResponse(id=new_key.id, name=new_key.name, api_key=raw_key)
+
+
+
+from app.dashboard import router as dashboard_router
+app.include_router(dashboard_router)
