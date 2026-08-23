@@ -66,4 +66,64 @@ cd frontend
 npm install
 ```
 
-Cre
+Create a file named `.env` inside `frontend/`:
+
+```bash
+VITE_API_URL=http://localhost:8000
+```
+
+Then start it:
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:5173`. You should see the landing page.
+
+## 7. Try the full flow
+
+From the landing page, click Get Started, sign up with any email, and you'll get a real API key shown once. From there the dashboard and playground both work against your local backend. No separate step needed, the frontend handles sign up for you.
+
+If you'd rather test the API directly instead of through the browser:
+
+```bash
+curl -X POST http://localhost:8000/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com"}'
+```
+
+Save the `api_key` value from the response, then:
+
+```bash
+curl -X POST http://localhost:8000/v1/chat/completions \
+  -H "Authorization: Bearer <the-key-from-above>" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "gpt-4o-mini", "messages": [{"role": "user", "content": "hello"}]}'
+```
+
+If this returns a real response, everything is working.
+
+## Other running services
+
+- **API docs:** `http://localhost:8000/docs`
+- **Prometheus:** `http://localhost:9090`
+- **Grafana:** `http://localhost:3000` (login `admin`/`admin` on first run, you'll be asked to set a new password)
+
+## Running the backend without Docker (optional)
+
+If you'd rather run the gateway process directly on your machine (Python 3.12+, [uv](https://github.com/astral-sh/uv) required):
+
+```bash
+# Start only Postgres and Redis in Docker
+make start-db
+
+# In your .env, use these instead:
+# POSTGRES_HOST=localhost
+# REDIS_HOST=localhost
+
+uv sync
+uv run alembic upgrade head
+make run
+```
+
+Back to **[README](../README.md)**.
