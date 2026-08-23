@@ -1,10 +1,10 @@
 # Local Setup
 
-Run the full gateway on your machine using Docker Compose. No AWS account or cloud resources needed for this.
+Run the full gateway, backend and frontend, on your machine. No AWS account or cloud resources needed for this.
 
 ## Prerequisites
 
-Docker and Docker Compose installed. That's the only requirement.
+Docker and Docker Compose, plus Node.js (for the frontend). That's it.
 
 ## 1. Clone the repo
 
@@ -29,11 +29,11 @@ POSTGRES_PORT=5432
 REDIS_HOST=redis
 ```
 
-You'll need real API keys from [platform.openai.com](https://platform.openai.com/api-keys) and [console.anthropic.com](https://console.anthropic.com/settings/keys). `ADMIN_TOKEN` can be any string you make up, it's what you'll use to create client API keys later.
+You'll need real API keys from [platform.openai.com](https://platform.openai.com/api-keys) and [console.anthropic.com](https://console.anthropic.com/settings/keys). `ADMIN_TOKEN` can be any string you make up, it's what you'll use for admin-only endpoints.
 
 `POSTGRES_HOST=postgres` and `REDIS_HOST=redis` must stay exactly as shown. These are the service names Docker Compose uses internally, not `localhost`.
 
-## 3. Start everything
+## 3. Start the backend
 
 ```bash
 docker compose up --build
@@ -49,7 +49,7 @@ In a separate terminal, while the stack is running:
 docker compose exec gateway alembic upgrade head
 ```
 
-## 5. Verify it's running
+## 5. Verify the backend is running
 
 Open `http://localhost:8000/health` in your browser. You should see:
 
@@ -57,49 +57,13 @@ Open `http://localhost:8000/health` in your browser. You should see:
 { "status": "okay" }
 ```
 
-## 6. Create your first API key
+## 6. Start the frontend
+
+In a separate terminal:
 
 ```bash
-curl -X POST http://localhost:8000/admin/keys \
-  -H "Authorization: Bearer your-admin-token" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "my-first-key"}'
+cd frontend
+npm install
 ```
 
-Replace `your-admin-token` with whatever you set as `ADMIN_TOKEN` in `.env`. Save the `api_key` value from the response, it's shown only once.
-
-## 7. Send your first request
-
-```bash
-curl -X POST http://localhost:8000/v1/chat/completions \
-  -H "Authorization: Bearer <the-key-from-step-6>" \
-  -H "Content-Type: application/json" \
-  -d '{"model": "gpt-4o-mini", "messages": [{"role": "user", "content": "hello"}]}'
-```
-
-If this returns a real response, everything is working.
-
-## Other running services
-
-- **API docs:** `http://localhost:8000/docs`
-- **Prometheus:** `http://localhost:9090`
-- **Grafana:** `http://localhost:3000` (login `admin`/`admin` on first run, you'll be asked to set a new password)
-
-## Running locally without Docker (optional)
-
-If you'd rather run the gateway process directly on your machine (Python 3.12+, [uv](https://github.com/astral-sh/uv) required):
-
-```bash
-# Start only Postgres and Redis in Docker
-make start-db
-
-# In your .env, use these instead:
-# POSTGRES_HOST=localhost
-# REDIS_HOST=localhost
-
-uv sync
-uv run alembic upgrade head
-make run
-```
-
-Back to **[README](../README.md)**.
+Cre
