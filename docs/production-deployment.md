@@ -1,6 +1,6 @@
 # Production Deployment (AWS EKS)
 
-The gateway has been deployed multiple times to a real AWS environment: EKS cluster, RDS Postgres, HTTPS on a custom domain, and cluster wide observability. Infrastructure is torn down between deployments to avoid ongoing cost, so this document is the permanent record of what a live deployment looks like, along with what actually went wrong along the way and how it got fixed.
+The gateway has been deployed multiple times to a real AWS environment: EKS cluster, RDS Postgres, HTTPS on a custom domain, and cluster wide observability. Infrastructure is torn down between deployments to avoid ongoing cost, so this document is the record of what a live deployment looks like and how to bring it back up.
 
 ## Infrastructure
 
@@ -18,9 +18,21 @@ The gateway has been deployed multiple times to a real AWS environment: EKS clus
 
 ![Gateway pods Running](images/gateway-pods-running.png)
 
+## Frontend
+
+Deployed separately on Vercel, always live at `https://gateway-app.prajwalkhatiwada.com` regardless of backend state.
+
+![Landing page](images/frontend-landing.png)
+
+![Sign up flow](images/frontend-signup.png)
+
+![Dashboard with real usage data](images/frontend-dashboard.png)
+
+![Playground with a live response](images/frontend-playground.png)
+
 ## Database
 
-RDS Postgres is not publicly accessible from the open internet; migrations run from a pod inside the cluster rather than a developer laptop, keeping the database's attack surface minimal.
+RDS Postgres is not publicly accessible from the open internet; migrations run from a pod inside the cluster rather than a developer laptop.
 
 ![RDS instance Available](images/rds-available.png)
 
@@ -32,13 +44,11 @@ RDS Postgres is not publicly accessible from the open internet; migrations run f
 
 ## Observability
 
-The same Grafana dashboard used locally (`grafana/dashboard.json`) was imported into this cluster's Grafana and populated with real traffic.
-
 ![Grafana dashboard populated with real data](images/grafana-dashboard-full.png)
 
 ## Load testing
 
-Benchmarked with [k6](https://k6.io) against the live deployment, in two separate tests kept under the gateway's own rate limit so the numbers reflect real latency rather than rejected requests.
+Benchmarked with [k6](https://k6.io) against the live deployment.
 
 |     | Cache hit | Live provider call |
 | --- | --------- | ------------------ |
@@ -46,15 +56,13 @@ Benchmarked with [k6](https://k6.io) against the live deployment, in two separat
 | p90 | 66ms      | 945ms              |
 | p95 | 96ms      | 1.03s              |
 
-The gateway's own overhead, meaning auth, cache lookup, and response formatting, stays under 100ms at p95. The live provider path is roughly ten times slower, almost entirely due to OpenAI's own round trip time, which the gateway has no control over. Scripts for both tests are in `scripts/load-test-cached.js` and `scripts/load-test-live.js`.
+Scripts in `scripts/load-test-cached.js` and `scripts/load-test-live.js`.
 
-A separate, continuous traffic generator also ran on a dedicated EC2 instance to keep the Grafana dashboard populated with realistic ongoing traffic, distinct from the k6 benchmarks above.
+A separate, continuous traffic generator ran on a dedicated EC2 instance to keep the Grafana dashboard populated with realistic ongoing traffic.
 
 ![Traffic generator log showing sustained requests](images/traffic-generator-log.png)
 
 ## Failover, demonstrated on demand
-
-Rather than waiting for a real outage, the gateway exposes an admin-only endpoint that forces a provider to appear unhealthy for a set window. This is how failover is shown live, on the deployed playground itself, without needing to break anything real.
 
 ```bash
 curl -X POST https://gateway.prajwalkhatiwada.com/dashboard/failover-demo \
@@ -63,21 +71,21 @@ curl -X POST https://gateway.prajwalkhatiwada.com/dashboard/failover-demo \
   -d '{"provider": "openai", "seconds": 90}'
 ```
 
-A request sent to an OpenAI-routed model within that window instead returns a response from Anthropic, visible directly in the response body.
+A request sent to an OpenAI-routed model within that window returns a response from Anthropic instead.
 
 ![Successful response during simulated provider outage](images/failover-success-response.png)
 
-## What went wrong rebuilding this, and how it got fixed
+## Rebuilding this deployment
 
-Tearing infrastructure down and rebuilding it is not the same as leaving it running. A few real problems came up rebuilding this deployment, in the order they were found.
+1. Restore RDS from the latest snapshot
+2. Recreate the EKS cluster with `eksctl create cluster -f infra/eksctl-cluster.yaml`
+3. Install the AWS Load Balancer Controller
+4. Apply the Kubernetes manifests in `k8s/`
+5. Update the Route 53 record to point at the new ALB
+6. Run `alembic upgrade head` against the restored database
+7. Verify with `curl https://gateway.prajwalkhatiwada.com/health`
 
-**The EKS cluster's CloudFormation stack failed to delete cleanly the first time.** A leftover EC2 instance, unrelated to the cluster itself, still held a network interface inside the cluster's subnet, which blocked the subnet and its security group from being deleted. Terminating that instance let the stack delete complete.
-
-**The new cluster landed in a different VPC than the existing RDS instance.** Nothing in a fresh `eksctl create cluster` guarantees the same VPC as before. Getting the two to talk required setting up VPC peering, adding routes in every subnet's route table on both sides, and adding security group rules allowing the cluster's actual node security group, not just the control plane's, to reach RDS on its port.
-
-**Even after peering, connections still timed out.** RDS's default DNS hostname resolves to its public IP when queried from a peered VPC, not its private IP, and the security group rules only allowed the private path. The fix was a Route 53 private hosted zone with an A record pointing directly at RDS's private IP, giving the app a stable internal hostname instead of either the public DNS name or a hardcoded IP.
-
-**The restored database was missing recent schema changes.** The RDS snapshot used to restore the database predated several Alembic migrations. Running `alembic upgrade head` against the live instance, with a temporary security group rule allowing the local machine's IP and SSL required on the connection, brought the schema up to date.
+If the new cluster lands in a different VPC than RDS, they won't be able to reach each other by default. VPC peering, matching routes in both VPCs' route tables, and a security group rule allowing the cluster's node security group into RDS resolves that. RDS's DNS name resolves to its public IP from a peered VPC rather than its private IP, so a Route 53 private hosted zone pointing at the private IP directly is used instead of the public hostname or a hardcoded IP.
 
 ---
 
