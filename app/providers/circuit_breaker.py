@@ -1,5 +1,6 @@
 import time
 from collections import deque
+from typing import Any
 
 from app.metrics import circuit_breaker_state
 
@@ -9,7 +10,7 @@ COOLDOWN_SECONDS = 30
 
 STATE_VALUES = {"closed": 0, "open": 1, "half_open": 0.5}
 
-circuit_state = {
+circuit_state: dict[str, dict[str, Any]] = {
     "openai": {"state": "closed", "outcomes": deque(), "opened_at": None},
     "anthropic": {"state": "closed", "outcomes": deque(), "opened_at": None},
 }

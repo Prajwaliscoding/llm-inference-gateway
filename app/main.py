@@ -85,7 +85,7 @@ async def chat_completions(request: Request,
       request.model = resolved_model
       result_info: dict[str, LLMProvider] = {}
 
-      status = 500 # if try and except doesn't give status, finally, needs it
+      status = "500" # if try and except doesn't give status, finally, needs it
       try: 
             response = await call_with_failover(provider, fallback_provider, request, result_info)
             status = "200"
