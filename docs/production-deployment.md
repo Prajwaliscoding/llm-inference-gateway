@@ -1,6 +1,6 @@
 # Production Deployment (AWS EKS)
 
-The gateway has been deployed multiple times to a real AWS environment: EKS cluster, RDS Postgres, HTTPS on a custom domain, and cluster wide observability. Infrastructure is torn down between deployments to avoid ongoing cost, so this document is the record of what a live deployment looks like and how to bring it back up.
+The gateway runs on Amazon EKS, with RDS Postgres, HTTPS on a custom domain, and cluster wide observability.
 
 ## Infrastructure
 
@@ -12,7 +12,7 @@ The gateway has been deployed multiple times to a real AWS environment: EKS clus
 - **Autoscaling:** HPA, 2 to 6 replicas on CPU
 - **Access control:** IAM Roles for Service Accounts (IRSA), no static AWS credentials in the cluster
 - **Observability:** `kube-prometheus-stack` via Helm, custom `ServiceMonitor`, Grafana public via its own Ingress
-- **Frontend:** React app on Vercel, entirely separate from the AWS infrastructure, stays live regardless of backend state
+- **Frontend:** React app on Vercel, separate from the AWS infrastructure
 
 ![EKS cluster Active](images/eks-cluster-active.png)
 
@@ -20,7 +20,7 @@ The gateway has been deployed multiple times to a real AWS environment: EKS clus
 
 ## Frontend
 
-Deployed separately on Vercel, always live at `https://gateway-app.prajwalkhatiwada.com` regardless of backend state.
+Deployed on Vercel, always live at `https://gateway-app.prajwalkhatiwada.com`.
 
 ![Landing page](images/frontend-landing.png)
 
@@ -76,6 +76,8 @@ A request sent to an OpenAI-routed model within that window returns a response f
 ![Successful response during simulated provider outage](images/failover-success-response.png)
 
 ## Rebuilding this deployment
+
+Infrastructure is torn down between deployments to control cost. To bring it back up:
 
 1. Restore RDS from the latest snapshot
 2. Recreate the EKS cluster with `eksctl create cluster -f infra/eksctl-cluster.yaml`
