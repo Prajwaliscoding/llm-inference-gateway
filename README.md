@@ -2,7 +2,7 @@
 
 An API gateway that proxies requests to multiple LLM providers (OpenAI and Anthropic), with real auth, persistence, caching, rate limiting, cost tracking, smart routing, automatic failover, circuit breaking, and full observability. Built as an OpenAI compatible drop in endpoint, with a React dashboard on top for signing up, testing requests, and viewing usage.
 
-**Live demo status:** This gateway is deployed to AWS on demand rather than run continuously, to control infrastructure cost. The frontend at `https://gateway-app.prajwalkhatiwada.com` stays live for free on Vercel and will tell you clearly if the backend is offline. The code, architecture, screenshots, and a full demo video are all in this repo. See [docs/production-deployment.md](docs/production-deployment.md) for the full deployment writeup with real screenshots from when it was live.
+**Live demo status:** This gateway is deployed to AWS on demand rather than run continuously, to control infrastructure cost. The frontend at `https://gateway-app.prajwalkhatiwada.com` stays live for free on Vercel and will tell you clearly if the backend is offline. The code, architecture, and screenshots of every screen are all in this repo. See [docs/production-deployment.md](docs/production-deployment.md) for the full deployment writeup with real screenshots from when it was live.
 
 ## Why this exists
 
