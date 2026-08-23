@@ -1,11 +1,12 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
 from app.database import get_db
 from app.models.api_key import ApiKey
 from app.security import hash_api_key
-from sqlalchemy import select
-from app.config import settings
 
 security = HTTPBearer()
 

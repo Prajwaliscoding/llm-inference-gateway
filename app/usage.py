@@ -1,8 +1,11 @@
+from datetime import UTC, datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.request_log import RequestLog
 from app.models.usage_summary import UsageSummary
-from datetime import datetime, timezone
+
 
 async def record_usage(db: AsyncSession,
                        api_key_id: int,
@@ -23,7 +26,7 @@ async def record_usage(db: AsyncSession,
                         cache_hit=cache_hit,
                         latency_ms=latency_ms))
 
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
 
     result = await db.execute(select(UsageSummary).where(UsageSummary.api_key_id == api_key_id,
                                                           UsageSummary.usage_date == today))

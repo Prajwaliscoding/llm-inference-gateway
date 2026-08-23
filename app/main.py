@@ -1,27 +1,33 @@
-from fastapi import FastAPI, Depends, HTTPException
-from app.cache import build_cache_key, save_cache_value, find_cache_key
+import time
+import uuid
+
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Response as FastAPIResponse
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth import verify_admin, verify_token
+from app.cache import build_cache_key, find_cache_key, save_cache_value
+from app.database import get_db
+from app.logging_config import configure_logging, logger
+from app.metrics import (
+      cache_hits_total,
+      cache_misses_total,
+      cost_cents_total,
+      request_duration_seconds,
+      requests_total,
+)
+from app.models.api_key import ApiKey
+from app.pricing import calculate_cost
 from app.providers.anthropic_provider import AnthropicProvider
 from app.providers.base import LLMProvider
-from app.providers.failover import call_with_failover
-from app.schemas.chat import Request, Response
-from app.config import settings
-from app.auth import verify_token
-from app.logging_config import configure_logging, logger
-import uuid
 from app.providers.factory import get_fallback_provider, get_provider, resolve_model
-from app.schemas.api_key import CreateApiKeyRequest, CreateApiKeyResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.database import get_db
-from app.security import generate_api_key, hash_api_key
-from app.models.api_key import ApiKey
-from app.auth import verify_admin
+from app.providers.failover import call_with_failover
 from app.rate_limit import check_rate_limit
-from app.pricing import calculate_cost
+from app.schemas.api_key import CreateApiKeyRequest, CreateApiKeyResponse
+from app.schemas.chat import Request, Response
+from app.security import generate_api_key, hash_api_key
 from app.usage import record_usage
-from fastapi import Response as FastAPIResponse
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-import time
-from app.metrics import request_duration_seconds, requests_total, cache_hits_total, cache_misses_total, cost_cents_total
 
 configure_logging()
 
@@ -151,6 +157,8 @@ app.add_middleware(
 )
 
 from app.schemas.signup import SignupRequest, SignupResponse
+
+
 @app.post("/auth/signup")
 async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
     raw_key = generate_api_key()
@@ -169,4 +177,5 @@ async def signup(request: SignupRequest, db: AsyncSession = Depends(get_db)):
 
 
 from app.dashboard import router as dashboard_router
+
 app.include_router(dashboard_router)

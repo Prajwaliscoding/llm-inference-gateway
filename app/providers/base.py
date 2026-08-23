@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from app.schemas.chat import Request, Response
 
 

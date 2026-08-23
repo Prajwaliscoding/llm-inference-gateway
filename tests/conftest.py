@@ -1,15 +1,16 @@
+import httpx
 import pytest
 import pytest_asyncio
+import redis.asyncio as redis_lib
+from httpx import ASGITransport
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from app.models.base import Base
-import redis.asyncio as redis_lib
+
 from app.database import get_db
 from app.main import app as fastapi_app
+from app.models.base import Base
 
-import httpx
-from httpx import ASGITransport
 
 @pytest.fixture(scope="session")
 def postgres_container():

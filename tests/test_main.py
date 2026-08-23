@@ -1,11 +1,13 @@
-from app.schemas.chat import Request, Message, Response, Choice, ResponseMessage, Usage
-import pytest
-from pydantic import ValidationError
-from unittest.mock import AsyncMock, patch
-import httpx
-import respx
 import json
+from unittest.mock import patch
+
+import httpx
+import pytest
+import respx
+from pydantic import ValidationError
+
 from app.cache import build_cache_key, find_cache_key, save_cache_value
+from app.schemas.chat import Choice, Message, Request, Response, ResponseMessage, Usage
 
 
 def test_valid_request():
@@ -64,7 +66,7 @@ async def test_provider_server_error_returns_502(test_api_key, override_get_db, 
 
 @pytest.mark.asyncio
 async def test_full_flow_with_fixture(test_api_key, override_get_db,override_redis, client):
-    with open("tests/fixtures/openai_response.json") as f:
+    with open("tests/fixtures/openai_response.json") as f:  # noqa: ASYNC230
         fixture_data = json.load(f)
 
     with respx.mock:
@@ -111,8 +113,9 @@ async def test_cache_hit_skips_provider(redis_session):
 
 @pytest.mark.asyncio
 async def test_rate_limit_returns_429(redis_session):
-    from app.rate_limit import check_rate_limit, RATE_LIMIT
     from fastapi import HTTPException
+
+    from app.rate_limit import RATE_LIMIT, check_rate_limit
 
     with patch("app.rate_limit.redis_client", redis_session):
         for _ in range(RATE_LIMIT):
@@ -122,7 +125,7 @@ async def test_rate_limit_returns_429(redis_session):
             await check_rate_limit(api_key_id=1)
 
         assert exc_info.value.headers is not None
-        assert "retry-after" in [h.lower() for h in exc_info.value.headers.keys()]
+        assert "retry-after" in [h.lower() for h in exc_info.value.headers]
 
 
 def test_resolve_model_short_prompt():

@@ -1,10 +1,12 @@
+from datetime import UTC, datetime, timedelta
+
 import sqlalchemy as sa
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timezone, timedelta
-from app.database import get_db
+
 from app.auth import verify_token
+from app.database import get_db
 from app.models.api_key import ApiKey
 from app.models.request_log import RequestLog
 
@@ -22,7 +24,7 @@ async def get_stats(
     api_key: ApiKey = Depends(verify_token),
     db: AsyncSession = Depends(get_db),
 ):
-    since = datetime.utcnow() - RANGE_MAP[range]
+    since = datetime.now(UTC) - RANGE_MAP[range]
 
     base_filter = (RequestLog.api_key_id == api_key.id, RequestLog.created_at >= since)
 
@@ -83,9 +85,11 @@ async def get_history(
     ]
 
 
-from app.providers.circuit_breaker import force_provider_down
-from app.auth import verify_admin
 from pydantic import BaseModel
+
+from app.auth import verify_admin
+from app.providers.circuit_breaker import force_provider_down
+
 
 class FailoverDemoRequest(BaseModel):
     provider: str

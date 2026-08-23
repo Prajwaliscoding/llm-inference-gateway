@@ -1,5 +1,6 @@
-from collections import deque
 import time
+from collections import deque
+
 from app.metrics import circuit_breaker_state
 
 FAILURE_WINDOW_SECONDS = 60
@@ -61,10 +62,7 @@ def is_available(provider_name: str) -> bool:
             circuit_breaker_state.labels(provider=provider_name).set(STATE_VALUES[entry["state"]])
             return True   # allow a test request
         return False
-    if entry["state"] == "half_open":
-        return True
-    
-    return False
+    return entry["state"] == "half_open"
 
 def update_circuit(provider_name: str, success: bool) -> None:
     entry = circuit_state[provider_name]

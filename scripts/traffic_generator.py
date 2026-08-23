@@ -11,11 +11,11 @@ Designed to run continuously (e.g. on a t3.nano EC2 instance) for
 multiple days, feeding real data into the Grafana dashboards.
 """
 
+import logging
 import os
 import random
 import time
-import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 import requests
 
@@ -93,30 +93,46 @@ MEDIUM_PROMPTS = [
 ]
 
 LONG_PROMPTS = [
-    "Write a short story about a robot who discovers it can dream, "
-    "focusing on its emotional journey as it grapples with this new "
-    "experience and what it means for its understanding of itself.",
-    "Explain in detail how a Kubernetes cluster schedules pods onto "
-    "nodes, including the role of the scheduler, resource requests "
-    "and limits, and how affinity/anti-affinity rules affect placement.",
-    "Compare and contrast three different approaches to caching in "
-    "distributed systems: write-through, write-back, and write-around, "
-    "including their tradeoffs in terms of consistency and performance.",
-    "Describe the full lifecycle of an HTTP request from a browser "
-    "typing a URL to receiving a rendered webpage, including DNS "
-    "resolution, TCP handshake, TLS negotiation, and HTTP response.",
-    "Write a detailed explanation of how retrieval-augmented generation "
-    "(RAG) works in large language model applications, including the "
-    "roles of embeddings, vector databases, and prompt construction.",
-    "Explain the tradeoffs between microservices and monolithic "
-    "architectures for a mid-sized startup, considering team size, "
-    "deployment complexity, and long-term maintainability.",
-    "Describe how database indexing improves query performance, "
-    "including the differences between B-tree and hash indexes, and "
-    "when each is most appropriate to use.",
-    "Write a comprehensive overview of how OAuth 2.0 authorization "
-    "flows work, covering the authorization code grant, implicit "
-    "grant, and client credentials grant, with use cases for each.",
+    (
+        "Write a short story about a robot who discovers it can dream, "
+        "focusing on its emotional journey as it grapples with this new "
+        "experience and what it means for its understanding of itself."
+    ),
+    (
+        "Explain in detail how a Kubernetes cluster schedules pods onto "
+        "nodes, including the role of the scheduler, resource requests "
+        "and limits, and how affinity/anti-affinity rules affect placement."
+    ),
+    (
+        "Compare and contrast three different approaches to caching in "
+        "distributed systems: write-through, write-back, and write-around, "
+        "including their tradeoffs in terms of consistency and performance."
+    ),
+    (
+        "Describe the full lifecycle of an HTTP request from a browser "
+        "typing a URL to receiving a rendered webpage, including DNS "
+        "resolution, TCP handshake, TLS negotiation, and HTTP response."
+    ),
+    (
+        "Write a detailed explanation of how retrieval-augmented generation "
+        "(RAG) works in large language model applications, including the "
+        "roles of embeddings, vector databases, and prompt construction."
+    ),
+    (
+        "Explain the tradeoffs between microservices and monolithic "
+        "architectures for a mid-sized startup, considering team size, "
+        "deployment complexity, and long-term maintainability."
+    ),
+    (
+        "Describe how database indexing improves query performance, "
+        "including the differences between B-tree and hash indexes, and "
+        "when each is most appropriate to use."
+    ),
+    (
+        "Write a comprehensive overview of how OAuth 2.0 authorization "
+        "flows work, covering the authorization code grant, implicit "
+        "grant, and client credentials grant, with use cases for each."
+    ),
 ]
 
 ALL_PROMPTS = SHORT_PROMPTS + MEDIUM_PROMPTS + LONG_PROMPTS
@@ -202,7 +218,7 @@ def main() -> None:
         send_request(session)
         request_count += 1
         if request_count % 50 == 0:
-            logger.info("Sent %d requests so far (%s)", request_count, datetime.utcnow().isoformat())
+            logger.info("Sent %d requests so far (%s)", request_count, datetime.now(UTC).isoformat())
         time.sleep(INTERVAL_SECONDS)
 
 

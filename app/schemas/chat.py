@@ -1,5 +1,5 @@
+
 from pydantic import BaseModel
-from typing import Optional
 
 # For Request body
 
@@ -10,9 +10,9 @@ class Message(BaseModel):
 class Request(BaseModel):
     model: str
     messages: list[Message]
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    n: Optional[int] = None
+    temperature: float | None = None
+    max_tokens: int | None = None
+    n: int | None = None
 
 # For Response Body
 class ResponseMessage(BaseModel):

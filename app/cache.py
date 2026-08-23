@@ -8,6 +8,7 @@ import json
 from app.redis_client import redis_client
 from app.schemas.chat import Request, Response
 
+
 def build_cache_key(request: Request) -> str:
     messages_list = []
     for m in request.messages:

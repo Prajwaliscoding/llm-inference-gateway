@@ -1,11 +1,12 @@
 from fastapi import HTTPException
+
+from app.logging_config import logger
+from app.metrics import provider_failures_total
 from app.providers.base import LLMProvider
+from app.providers.circuit_breaker import is_available, record_outcome, update_circuit
 from app.providers.exceptions import ProviderError
 from app.providers.openai_provider import OpenAIProvider
 from app.schemas.chat import Request, Response
-from app.logging_config import logger
-from app.providers.circuit_breaker import is_available, update_circuit, record_outcome
-from app.metrics import provider_failures_total
 
 
 async def call_with_failover(primary: LLMProvider, fallback: LLMProvider, request: Request,

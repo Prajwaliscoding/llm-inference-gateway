@@ -1,10 +1,16 @@
-from app.providers.base import LLMProvider
-from app.config import settings
-from app.providers.exceptions import ProviderConnectionError, ProviderServerError, ProviderTimeoutError
-from app.schemas.chat import Request, Response
 import httpx
 from fastapi import HTTPException
+
+from app.config import settings
 from app.logging_config import logger
+from app.providers.base import LLMProvider
+from app.providers.exceptions import (
+    ProviderConnectionError,
+    ProviderServerError,
+    ProviderTimeoutError,
+)
+from app.schemas.chat import Request, Response
+
 
 class OpenAIProvider(LLMProvider):
 

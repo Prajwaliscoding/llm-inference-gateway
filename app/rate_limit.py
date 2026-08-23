@@ -1,6 +1,7 @@
 # incr(ratelimit:5)
 
 from fastapi import HTTPException
+
 from app.redis_client import redis_client
 
 RATE_LIMIT = 60

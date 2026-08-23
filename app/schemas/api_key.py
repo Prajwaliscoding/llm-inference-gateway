@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class CreateApiKeyRequest(BaseModel):
     name:str
 
