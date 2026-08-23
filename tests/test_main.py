@@ -33,9 +33,12 @@ async def test_missing_token_returns_401(client):
 
 
 @pytest.mark.asyncio
-async def test_provider_unreachable_returns_502(test_api_key, override_get_db,override_redis, client):
+async def test_provider_unreachable_returns_503(test_api_key, override_get_db,override_redis, client):
     with respx.mock:
         respx.post("https://api.openai.com/v1/chat/completions").mock(
+            side_effect=httpx.RequestError("Connection failed")
+        )
+        respx.post("https://api.anthropic.com/v1/messages").mock(
             side_effect=httpx.RequestError("Connection failed")
         )
 
@@ -45,13 +48,16 @@ async def test_provider_unreachable_returns_502(test_api_key, override_get_db,ov
             json={"model": "gpt-4o-mini", "messages": [{"role": "user", "content": "hello"}]},
         )
 
-    assert response.status_code == 502
+    assert response.status_code == 503
 
 
 @pytest.mark.asyncio
-async def test_provider_server_error_returns_502(test_api_key, override_get_db, override_redis, client):
+async def test_provider_server_error_returns_503(test_api_key, override_get_db, override_redis, client):
     with respx.mock:
         respx.post("https://api.openai.com/v1/chat/completions").mock(
+            return_value=httpx.Response(status_code=500)
+        )
+        respx.post("https://api.anthropic.com/v1/messages").mock(
             return_value=httpx.Response(status_code=500)
         )
 
@@ -61,7 +67,7 @@ async def test_provider_server_error_returns_502(test_api_key, override_get_db, 
             json={"model": "gpt-4o-mini", "messages": [{"role": "user", "content": "hello"}]},
         )
 
-    assert response.status_code == 502
+    assert response.status_code == 503
 
 
 @pytest.mark.asyncio

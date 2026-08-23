@@ -10,6 +10,7 @@ from testcontainers.redis import RedisContainer
 from app.database import get_db
 from app.main import app as fastapi_app
 from app.models.base import Base
+from app.providers.circuit_breaker import circuit_state, forced_down
 
 
 @pytest.fixture(scope="session")
@@ -94,3 +95,13 @@ def override_redis(redis_session):
     yield
     app.cache.redis_client = original_cache_redis
     app.rate_limit.redis_client = original_ratelimit_redis
+
+
+@pytest.fixture(autouse=True)
+def reset_circuit_breaker():
+    for provider in circuit_state:
+        circuit_state[provider]["state"] = "closed"
+        circuit_state[provider]["outcomes"].clear()
+        circuit_state[provider]["opened_at"] = None
+        forced_down[provider] = None
+    yield
