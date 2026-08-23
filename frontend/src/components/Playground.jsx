@@ -45,7 +45,7 @@ export default function Playground({ apiKey, onRequestComplete }) {
           <option value="auto">auto</option>
           <option value="gpt-4o-mini">gpt-4o-mini</option>
           <option value="gpt-4o">gpt-4o</option>
-          <option value="claude-3-5-sonnet-latest">claude-3-5-sonnet</option>
+          <option value="claude-sonnet-5">claude-sonnet-5</option>
         </select>
         <textarea
           required
